@@ -19,12 +19,12 @@ class HomePageView(TemplateView):
 
 def root_index(request):
 
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request,user)
+#    if request.method == "POST":
+#        username = request.POST['username']
+#        password = request.POST['password']
+#        user = authenticate(request, username=username, password=password)
+#        if user is not None:
+#            login(request,user)
     """
     else:
         user = None
@@ -38,7 +38,15 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect('/')
 
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request,user)
 
+    return HttpResponseRedirect('/')
 
 
 #def root_index(request):

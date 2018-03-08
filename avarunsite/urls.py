@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'stocksdemo/', include('stocksdemo.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/logout/', views.logout_view, name ="logout_view"),
+    url(r'^accounts/login/', views.login_view, name ="login_view"),
 ]
