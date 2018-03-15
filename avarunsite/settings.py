@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['avarun.cn','www.avarun.cn','123.207.175.60']
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
+    'stocksdemo.apps.StocksdemoConfig',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -113,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
 #TIME_ZONE = 'UTC'
 TIME_ZONE = 'Asia/Shanghai'

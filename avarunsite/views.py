@@ -8,13 +8,29 @@ from django.contrib.auth import authenticate, login, logout
 
 class HomePageView(TemplateView):
     template_name = "site/index.html"
-    login_form = LoginForm()
+    login_form = LoginForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['login_form'] = self.login_form
         context['content'] = "You are in site HomePage"
         return context
+
+    def get(self, request, *args, **kwargs):
+        form = self.login_form()
+        return render (request,self.template_name,{'login_form':form,'user':request.user})        
+
+    def post(self, request, *args, **kwargs):
+        form = self.login_form(request.POST)
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request,user)
+        return render (request,self.template_name,{'login_form':form,'user':request.user})        
+
+
+
 
 
 def root_index(request):
@@ -45,7 +61,6 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request,user)
-
     return HttpResponseRedirect('/')
 
 
