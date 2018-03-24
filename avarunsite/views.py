@@ -30,7 +30,8 @@ class HomePageView(TemplateView):
         return render (request,self.template_name,{'login_form':form,'user':request.user})        
 
 
-
+class InprogressView(HomePageView):
+    template_name = "site/in_progress.html"
 
 
 def root_index(request):

@@ -33,6 +33,12 @@ ALLOWED_HOSTS = ['avarun.cn','www.avarun.cn','123.207.175.60']
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'stocksdemo.apps.StocksdemoConfig',
+    'analytics_R.apps.AnalyticsRConfig',
+    'analytics_P.apps.AnalyticsPConfig',
+    'modeling.apps.ModelingConfig',
+
+    'django_adminlte',
+    'django_adminlte_theme',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -131,3 +137,14 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, "static/") # this line is added after initiation
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+
