@@ -1,0 +1,345 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">数据管理</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+
+{% block main_txt_area %}
+<div>
+<h1 class="title">Data Management in R</h1>
+</div>
+
+<hr />
+<p>Raw data is typically not available as R data files. If your data has been extracted from a database, you will most likely receive it as flat text files, e.g., csv files. Data recording web activity is often stored in a format called json. In this section we will look at how to easily read data files into R’s memory and how to store them as R databases.</p>
+<div id="reading-data-into-r" class="section level2">
+<h2>Reading Data into R</h2>
+<p>In the following we will use some data from the NFL as example data. You can download all data and code for this lesson as a zip folder <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/lessons/Basic%20Data%20Management.zip">here</a>.</p>
+<div id="reading-r-data-files" class="section level3">
+<h3>Reading R data files</h3>
+<p>If your data is already stored in an R database file, you can read it in with the <strong>load</strong> command:</p>
+<pre class="r"><code>FileName &lt;- &#39;c:/mydata/2013_nfl.rda&#39;
+load(FileName)</code></pre>
+<p>This will load the data frames (or other R objects) contained in the R database “2013_nfl.rda”. Note that this database may contain one or several data frames. There are several advantages to storing your data as an R database: They are highy compressed files and R will read them into memory very fast. If you have obtained your data in another data format, it is recommended to start your analysis by converting all data to an R database (see below for how you do this).</p>
+<div id="digression-paths-in-r" class="section level4">
+<h4>Digression: Paths in R</h4>
+<p>Note that in the example above we provided the full file path and name when loading the data. If the file you are loading is located in the current working directory, then you can simply write the file name:</p>
+<pre class="r"><code>FileName &lt;- &#39;2013_nfl.rda&#39;
+load(FileName)</code></pre>
+<p>Don’t know your current working directory? Simply execute the command</p>
+<pre class="r"><code>getwd()</code></pre>
+<p>in the R console. If the file is located in a subdirectory of your current work directory called - for example - “data” - then you can write</p>
+<pre class="r"><code>FileName &lt;- &#39;data/2013_nfl.rda&#39;
+load(FileName)</code></pre>
+<p>It is good practice to start out a data analytics project by defining a new folder on your local drive, e.g., “SuperDuperAnalytics”. Then set the working directory to be this folder. Then you can have subfolders called “data”, “code”, “results” etc.</p>
+<p>One feature of the <strong>load</strong> command that is sometimes annoying, is that you don’t know the names of the R objects, e.g., data frames, that you are loading until after you have read them into memory. This can create problems if you are reading in multiple .rda files in sequence and some of them have objects with identical names. An alternative is to save and read R data using files where there is only one single object rather than multiple objects. If R data has been saved using the <strong>saveRDS</strong> command (see below for more on this), you can read it in as</p>
+<pre class="r"><code>nfl.data &lt;- readRDS(&#39;c:/mydata/2013_nfl.rds&#39;)</code></pre>
+<p>The advantage here is that you have control over what to call the R data frame when loaded in memory.</p>
+</div>
+</div>
+<div id="reading-csv-files" class="section level3">
+<h3>Reading CSV files</h3>
+<p>It is straightforward to read a csv file into R’s memory:</p>
+<pre class="r"><code>FileName &lt;- &#39;c:/mydata/NFL/data/2013 NFL Play-by-Play Data.csv&#39;
+nfl.data &lt;- read.csv(FileName)</code></pre>
+<p>If the first line of the csv file contains column names, R will automatically assign these as variable names in the resulting data.frame:</p>
+<pre class="r"><code>names(nfl.data)</code></pre>
+<pre><code>##  [1] &quot;Date&quot;                              
+##  [2] &quot;Tm&quot;                                
+##  [3] &quot;Opp&quot;                               
+##  [4] &quot;Quarter&quot;                           
+##  [5] &quot;Time&quot;                              
+##  [6] &quot;Down&quot;                              
+##  [7] &quot;ToGo&quot;                              
+##  [8] &quot;Side.of.Field&quot;                     
+##  [9] &quot;Yard.Marker&quot;                       
+## [10] &quot;Tm.Score&quot;                          
+## [11] &quot;Opp.Score&quot;                         
+## [12] &quot;Detail&quot;                            
+## [13] &quot;Yds&quot;                               
+## [14] &quot;Play.Type&quot;                         
+## [15] &quot;Pass.Result&quot;                       
+## [16] &quot;Pass.Distance&quot;                     
+## [17] &quot;Pass.Location&quot;                     
+## [18] &quot;Run.Location&quot;                      
+## [19] &quot;Turnover&quot;                          
+## [20] &quot;Fumble&quot;                            
+## [21] &quot;Interception&quot;                      
+## [22] &quot;Passer&quot;                            
+## [23] &quot;Intended.Receiver&quot;                 
+## [24] &quot;Receiver&quot;                          
+## [25] &quot;Targeted.Receiver&quot;                 
+## [26] &quot;Rusher&quot;                            
+## [27] &quot;Touchdown&quot;                         
+## [28] &quot;First.Down&quot;                        
+## [29] &quot;Time.Under&quot;                        
+## [30] &quot;Score.Differential&quot;                
+## [31] &quot;Absolute.Score.Differential&quot;       
+## [32] &quot;Game.Week&quot;                         
+## [33] &quot;Team.Game.Location&quot;                
+## [34] &quot;Rush.Attempt&quot;                      
+## [35] &quot;Pass.Attempt&quot;                      
+## [36] &quot;Reception&quot;                         
+## [37] &quot;Interception.Thrown&quot;               
+## [38] &quot;Target&quot;                            
+## [39] &quot;Fumble.Count&quot;                      
+## [40] &quot;Sack&quot;                              
+## [41] &quot;Len&quot;                               
+## [42] &quot;Yard.Line&quot;                         
+## [43] &quot;Playmaker&quot;                         
+## [44] &quot;Touches&quot;                           
+## [45] &quot;Play.Attempts&quot;                     
+## [46] &quot;Playmaker.Position&quot;                
+## [47] &quot;Yards.Gained&quot;                      
+## [48] &quot;Play.Location&quot;                     
+## [49] &quot;Touchdown.Count&quot;                   
+## [50] &quot;Play.Percent.of.Goal&quot;              
+## [51] &quot;First.Down.Count&quot;                  
+## [52] &quot;Conversion.Count&quot;                  
+## [53] &quot;Goal.To.Go&quot;                        
+## [54] &quot;Success.Count&quot;                     
+## [55] &quot;Penalty.Removed.Detail&quot;            
+## [56] &quot;Len.Penalty&quot;                       
+## [57] &quot;Playmaker.Fantasy.Points&quot;          
+## [58] &quot;Passer.Fantasy.Points&quot;             
+## [59] &quot;Fantasy.Points.Rushing.Yards&quot;      
+## [60] &quot;Fantasy.Points.Receiving.Yards&quot;    
+## [61] &quot;Fantasy.Points.Receptions&quot;         
+## [62] &quot;Fantasy.Points.Rushing.TD&quot;         
+## [63] &quot;Fantasy.Points.Receiving.TD&quot;       
+## [64] &quot;Fantasy.Points.Playmaker.Fumble&quot;   
+## [65] &quot;Fantasy.Points.Passer.Yards&quot;       
+## [66] &quot;Fantasy.Points.Passer.TD&quot;          
+## [67] &quot;Fantasy.Points.Passer.Interception&quot;
+## [68] &quot;Team.Game.Number&quot;</code></pre>
+<p>If you have very large csv files (in the GB range), you may want to swith to the <strong>read_csv</strong> function in the <strong>readr</strong> library:</p>
+<pre class="r"><code>library(readr)
+nfl.data &lt;- read_csv(FileName)</code></pre>
+<p>This is quite a bit faster than than the base <strong>read.csv</strong> function and allows for fine control over variable formatting (see the documentation for the readr package). A cool feature of the <strong>readr</strong> library is that you can read raw data stored in zip files without “unzipping” them first:</p>
+<pre class="r"><code>ZipFileName &lt;- &#39;c:/mydata/NFL/2013 NFL Play-by-Play Data.zip&#39;
+nfl.data &lt;- read_csv(ZipFileName)</code></pre>
+</div>
+<div id="using-rio" class="section level3">
+<h3>Using RIO</h3>
+<p>An alternative to using the above functions in R is to use <a href="https://cran.r-project.org/web/packages/rio/vignettes/rio.html">RIO</a>. This is an R package that provides data input functions for a variety of data formats.</p>
+</div>
+</div>
+<div id="storing-data-in-r-format" class="section level2">
+<h2>Storing data in R format</h2>
+<p>You can store data in R’s compressed database format using the <em>save</em> command:</p>
+<pre class="r"><code>save(nfl.data,file=&#39;c:/mydata/nfl_data.rda&#39;)</code></pre>
+<p>You can store multiple objects in one file. Suppose you had two different versions of the data, nfl.data.V1 and nfl.data.V2. Then you can store both data frames in one file with</p>
+<pre class="r"><code>save(nfl.data.V1,nfl.data.V2,file=&#39;c:/mydata/nfl_data.rda&#39;)</code></pre>
+<p>When you then use</p>
+<pre class="r"><code>load(&#39;c:/mydata/nfl_data.rda&#39;)</code></pre>
+<p>the data frames nfl.data.V1 and nfl.data.V2 will appear in R’s memory.</p>
+<p>To save only a single object so that you can later rename it at the time of loading, use the <strong>saveRDS</strong> command:</p>
+<pre class="r"><code>saveRDS(nfl.data,file=&#39;c:/mydata/nfl_data.rds&#39;)</code></pre>
+<p>In this case you can only save a single object.</p>
+<div id="general-recommendations" class="section level3">
+<h3>General Recommendations</h3>
+<ul>
+<li><p><strong>Always start by converting raw data to R data files</strong>. You can then start any subsequent data analysis by reading in the data in R format rather than in raw format. This will be much faster. Save your code for converting raw data to R format in case you want to go back to check for errors: Make an R source file called something like <strong>convert_data_to_R.r</strong>. This file should contain the code you used to (a) read in the raw data, (b) perform any initial data clean-up or transformations and (c) save data in R format.</p></li>
+<li><p>A good prescription is to save large data files using the <strong>saveRDS</strong> command. You can then load them later using a customized name.</p></li>
+</ul>
+</div>
+</div>
+<div id="merging-data" class="section level2">
+<h2>Merging Data</h2>
+<p>You will often have a need for merging data frames. For example, suppose you have a customer transaction file where each customer is identified by some unique id. In another file you may have other information on each customer, e.g., address, type, length of relationship etc. If you want to link customer characteristics to transaction behavior, you will need to merge the two files. In this case, we would merge on the unique customer id.</p>
+<p>You can merge data frames in R using the <strong>join</strong> command in the <strong>dplyr</strong> library. As an example, suppose we first count the number of turnovers for each NFL team in the 2013 season (for details on the <strong>group_by</strong> command see the <a href="group_summaries.html">group summaries</a> section):</p>
+<pre class="r"><code>library(dplyr)
+turnover.total &lt;- nfl.data %&gt;%
+  group_by(Tm) %&gt;%
+  summarize(Turnovers=sum(Turnover))</code></pre>
+<p>The result is</p>
+<pre><code>##            Tm Turnovers
+## 1       49ers        21
+## 2       Bears        29
+## 3     Bengals        36
+## 4       Bills        40
+## 5     Broncos        29
+## 6      Browns        34
+## 7  Buccaneers        25
+## 8   Cardinals        39
+## 9    Chargers        21
+## 10     Chiefs        26
+## 11      Colts        20
+## 12    Cowboys        27
+## 13   Dolphins        31
+## 14     Eagles        28
+## 15    Falcons        31
+## 16     Giants        50
+## 17    Jaguars        38
+## 18       Jets        37
+## 19      Lions        46
+## 20    Packers        31
+## 21   Panthers        21
+## 22   Patriots        29
+## 23    Raiders        39
+## 24       Rams        26
+## 25     Ravens        36
+## 26   Redskins        45
+## 27     Saints        19
+## 28   Seahawks        27
+## 29   Steelers        29
+## 30     Texans        41
+## 31     Titans        36
+## 32    Vikings        37</code></pre>
+<p>Now let’s read in another file with information on each teams win-loss percentage in the same season:</p>
+<pre class="r"><code>nfl.record &lt;- read_csv(file = &#39;data/NFL_2013_Record.csv&#39;)
+nfl.record</code></pre>
+<pre><code>## Source: local data frame [32 x 3]
+## 
+##          Tm Record Conference
+##       (chr)  (dbl)      (chr)
+## 1    Eagles  0.625        NFC
+## 2   Cowboys  0.500        NFC
+## 3    Giants  0.438        NFC
+## 4  Redskins  0.188        NFC
+## 5   Packers  0.531        NFC
+## 6     Bears  0.500        NFC
+## 7     Lions  0.438        NFC
+## 8   Vikings  0.344        NFC
+## 9  Panthers  0.750        NFC
+## 10   Saints  0.688        NFC
+## ..      ...    ...        ...</code></pre>
+<p>We can now merge the two data frames on the variable <strong>Tm</strong>:</p>
+<pre class="r"><code>turnover.total.record &lt;- turnover.total %&gt;%
+  left_join(nfl.record,by=&quot;Tm&quot;)</code></pre>
+<p>This will return the following data frame:</p>
+<pre><code>##            Tm Turnovers Record Conference
+## 1       49ers        21  0.750        NFC
+## 2       Bears        29  0.500        NFC
+## 3     Bengals        36  0.688        AFC
+## 4       Bills        40  0.375        AFC
+## 5     Broncos        29  0.813        AFC
+## 6      Browns        34  0.250        AFC
+## 7  Buccaneers        25  0.250        NFC
+## 8   Cardinals        39  0.625        NFC
+## 9    Chargers        21  0.563        AFC
+## 10     Chiefs        26  0.688        AFC
+## 11      Colts        20  0.688        AFC
+## 12    Cowboys        27  0.500        NFC
+## 13   Dolphins        31  0.500        AFC
+## 14     Eagles        28  0.625        NFC
+## 15    Falcons        31  0.250        NFC
+## 16     Giants        50  0.438        NFC
+## 17    Jaguars        38  0.250        AFC
+## 18       Jets        37  0.500        AFC
+## 19      Lions        46  0.438        NFC
+## 20    Packers        31  0.531        NFC
+## 21   Panthers        21  0.750        NFC
+## 22   Patriots        29  0.750        AFC
+## 23    Raiders        39  0.250        AFC
+## 24       Rams        26  0.438        NFC
+## 25     Ravens        36  0.500        AFC
+## 26   Redskins        45  0.188        NFC
+## 27     Saints        19  0.688        NFC
+## 28   Seahawks        27  0.813        NFC
+## 29   Steelers        29  0.500        AFC
+## 30     Texans        41  0.125        AFC
+## 31     Titans        36  0.438        AFC
+## 32    Vikings        37  0.344        NFC</code></pre>
+<p>By default <strong>left_join</strong> will return all columns from both data frames. If there are rows in the “left” data frame (here <em>turnover.total</em>) that do not have a match in the “right” data frame (here <em>nfl.record</em>), then these will have a NA in the corresponding row. To see this in action, let’s remove two teams from the <em>nfl.record</em> data frame and then merge:</p>
+<pre class="r"><code>nfl.record.miss &lt;- nfl.record %&gt;%
+  filter(!Tm %in% c(&#39;Bears&#39;,&#39;Chiefs&#39;))
+
+turnover.total.record.miss &lt;- turnover.total %&gt;%
+  left_join(nfl.record.miss,by=&quot;Tm&quot;)</code></pre>
+<p>The result is now</p>
+<pre><code>##            Tm Turnovers Record Conference
+## 1       49ers        21  0.750        NFC
+## 2       Bears        29     NA       &lt;NA&gt;
+## 3     Bengals        36  0.688        AFC
+## 4       Bills        40  0.375        AFC
+## 5     Broncos        29  0.813        AFC
+## 6      Browns        34  0.250        AFC
+## 7  Buccaneers        25  0.250        NFC
+## 8   Cardinals        39  0.625        NFC
+## 9    Chargers        21  0.563        AFC
+## 10     Chiefs        26     NA       &lt;NA&gt;
+## 11      Colts        20  0.688        AFC
+## 12    Cowboys        27  0.500        NFC
+## 13   Dolphins        31  0.500        AFC
+## 14     Eagles        28  0.625        NFC
+## 15    Falcons        31  0.250        NFC
+## 16     Giants        50  0.438        NFC
+## 17    Jaguars        38  0.250        AFC
+## 18       Jets        37  0.500        AFC
+## 19      Lions        46  0.438        NFC
+## 20    Packers        31  0.531        NFC
+## 21   Panthers        21  0.750        NFC
+## 22   Patriots        29  0.750        AFC
+## 23    Raiders        39  0.250        AFC
+## 24       Rams        26  0.438        NFC
+## 25     Ravens        36  0.500        AFC
+## 26   Redskins        45  0.188        NFC
+## 27     Saints        19  0.688        NFC
+## 28   Seahawks        27  0.813        NFC
+## 29   Steelers        29  0.500        AFC
+## 30     Texans        41  0.125        AFC
+## 31     Titans        36  0.438        AFC
+## 32    Vikings        37  0.344        NFC</code></pre>
+<p>If you want the result only for teams where there is a positive match, you can use <strong>inner_join</strong> instead:</p>
+<pre class="r"><code>turnover.total.record.miss &lt;- turnover.total %&gt;%
+  inner_join(nfl.record.miss,by=&quot;Tm&quot;)</code></pre>
+<p>This results in</p>
+<pre><code>##            Tm Turnovers Record Conference
+## 1       49ers        21  0.750        NFC
+## 2     Bengals        36  0.688        AFC
+## 3       Bills        40  0.375        AFC
+## 4     Broncos        29  0.813        AFC
+## 5      Browns        34  0.250        AFC
+## 6  Buccaneers        25  0.250        NFC
+## 7   Cardinals        39  0.625        NFC
+## 8    Chargers        21  0.563        AFC
+## 9       Colts        20  0.688        AFC
+## 10    Cowboys        27  0.500        NFC
+## 11   Dolphins        31  0.500        AFC
+## 12     Eagles        28  0.625        NFC
+## 13    Falcons        31  0.250        NFC
+## 14     Giants        50  0.438        NFC
+## 15    Jaguars        38  0.250        AFC
+## 16       Jets        37  0.500        AFC
+## 17      Lions        46  0.438        NFC
+## 18    Packers        31  0.531        NFC
+## 19   Panthers        21  0.750        NFC
+## 20   Patriots        29  0.750        AFC
+## 21    Raiders        39  0.250        AFC
+## 22       Rams        26  0.438        NFC
+## 23     Ravens        36  0.500        AFC
+## 24   Redskins        45  0.188        NFC
+## 25     Saints        19  0.688        NFC
+## 26   Seahawks        27  0.813        NFC
+## 27   Steelers        29  0.500        AFC
+## 28     Texans        41  0.125        AFC
+## 29     Titans        36  0.438        AFC
+## 30    Vikings        37  0.344        NFC</code></pre>
+<p>There is also a <strong>semi_join</strong> and <strong>anti_join</strong> but they tend to be less useful (for the details see the help for <strong>join</strong> in the <strong>dplyr</strong> library).</p>
+<p>What is the result? Let’s do a quick visualization (you will learn how to do this in the <a href="visualization.html">Data Visualization</a> section):</p>
+<div class="figure">
+<img src="/static/analytics_R/data_management_01.png" alt="" />
+
+</div>
+<div id="exercise" class="section level4">
+<h4>Exercise</h4>
+<p>What is the relationship between a quarterback’s interception rate (defined as number of interceptions thrown divided by the total number of passes) and the quaterback’s age and experience?</p>
+<p>First we load data on frequently playing quarterbacks’ interception rate:</p>
+<pre class="r"><code>FileName &lt;- &#39;data/interceptions_qb.rds&#39;
+interceptions.qb &lt;- readRDS(FileName)</code></pre>
+<p>Next load data on NFL player characteristics:</p>
+<pre class="r"><code>FileName &lt;- &#39;data/NFL_2013_Player_Census.rds&#39;
+player.data &lt;- readRDS(FileName)</code></pre>
+<p>Hint: To perform the relevant merge, note that the player name variable has a different name in the two data frames to be merged. To find out how to solve this problem look in the help section for <strong>left_join</strong> (write <em>help(“left_join”)</em> in the R console).</p>
+</div>
+</div>
+</div>
+{% endblock main_txt_area %}

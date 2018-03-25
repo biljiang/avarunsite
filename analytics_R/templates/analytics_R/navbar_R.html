@@ -1,0 +1,144 @@
+<!-- Navbar -->
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background-color: #417690" >
+  <a class="navbar-brand" href="/">AVARUN</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item invisible">
+        <a class="nav-link" href="/">首页 <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          数据输入
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href={% url "analytics_R:data_management" %}>R 数据管理</a>
+          <a class="dropdown-item" href="/in_progress/">R 数据库操作</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          数据清理
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href={% url "analytics_R:data_transformation" %}>数据转换</a>
+          <a class="dropdown-item" href={% url "analytics_R:group_summaries" %}>数据汇总</a>
+          <a class="dropdown-item" href={% url "analytics_R:tidy_data" %}>Tidy Data</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          数据可视化
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">使用“ggplot2" </a>
+          <a class="dropdown-item" href= "#">地图制作</a>
+          <a class="dropdown-item" href="/stocks_reactive">交互式可视化</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          预测
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">线性回归 </a>
+          <a class="dropdown-item" href= "#">逻辑回归</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          聚类
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">k-means </a>
+          <a class="dropdown-item" href= "#">分类和数据降维</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          文本挖掘
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">文本数据 </a>
+          <a class="dropdown-item" href= "#">汇总语料库</a>
+          <a class="dropdown-item" href="/stocks_reactive">情感分析</a>
+        </div>
+      </li>
+{% comment %}
+      <li class="nav-item">
+        <a class="nav-link{% if '/polls/' in request.path_info %} active{% endif %}" href={% url 'polls:index' %}>其他</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disable invisible" href={% url 'login' %}?next={{ request.path_info }}>Account Login</a>
+      </li>
+{% endcomment %}
+    </ul>
+
+    <ul class="navbar-nav pull-right">
+    {% if user.is_authenticated %}
+       <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {{user.username}}
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href={% url 'logout_view' %}>Logout</a>
+          <a class="dropdown-item" href={% url 'password_change' %}>Change Password</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Something else here</a>
+        </div>
+      </li>
+    {% else %} 
+       <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_login" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          登录
+        </a>
+            <div class="dropdown-menu">
+              <form class="px-4 py-3" method ="post">
+              {% csrf_token %}
+                <div class="form-group">
+{#                  <label for="exampleDropdownFormEmail1">Email address</label>  #}
+{#                  <input type="email" class="form-control" id="exampleDropdownFormEmail1" placeholder="email@example.com">   #}
+                {{ login_form.username.errors}}
+                {{ login_form.username.label_tag }}
+                {{ login_form.username }}
+                </div>
+                <div class="form-group">
+{#                  <label for="exampleDropdownFormPassword1">Password</label>    #}
+{#                  <input type="password" class="form-control" id="exampleDropdownFormPassword1" placeholder="Password">   #}
+                {{ login_form.password.errors}}
+                {{ login_form.password.label_tag }}
+                {{ login_form.password }}
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                  <label class="form-check-label" for="dropdownCheck">
+                    Remember me
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign in</button>
+              </form>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">New around here? Sign up</a>
+              <a class="dropdown-item" href="#">Forgot password?</a>
+            </div>
+      </li>
+    {% endif %}
+
+{% comment %}
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/">管理</a>
+      </li>
+    </ul>
+{% endcomment %}
+   <form class="form-inline my-2 my-lg-0">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Search</button>
+    </form>
+
+  </div>
+</nav>
+<!-- end navbar -->
+ 

@@ -1,0 +1,249 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+{% block main_txt_area %}
+
+<div id="header">
+<h1 class="title">Summarizing a Corpus</h1>
+</div>
+
+
+<hr />
+<p>Text data is messy and to make sense of it you often have to clean it a bit first. For example, do you want “Tuesday” and “Tuesdays” to count as separate words or the same word? Most of the time we would want to count this as the same word. Similarly with “run” and “running”. Furthermore, we often are not interested in including punctuation in the analysis - we just want to treat the text as a “bag of words”. There are libraries in R that will help you do this.</p>
+<p>In the following let’s look at Yelp reviews of Las Vegas hotels:</p>
+<pre class="r"><code>load(&#39;vegas_hotels.rda&#39;)</code></pre>
+<p>This data contains customer reviews of 18 hotels in Las Vegas. We can use the ggmap library to plot the hotel locations:</p>
+<pre class="r"><code>library(ggmap)
+ggmap(get_map(&quot;The Strip, Las Vegas, Nevada&quot;,zoom=15,color = &quot;bw&quot;)) +   
+    geom_text(data=business,
+              aes(x=longitude,y=latitude,label=name),
+              size=3,color=&#39;red&#39;)  </code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+
+</div>
+<p>In addition to text, each review also contain a star rating from 1 to 5. Let’s see how the 18 hotels fare on average in terms of star ratings:</p>
+<pre class="r"><code>library(dplyr)
+
+reviews %&gt;%
+  left_join(select(business,business_id,name),
+             by=&#39;business_id&#39;) %&gt;%
+  group_by(name) %&gt;%
+  summarize(n = n(),
+            mean.star = mean(as.numeric(stars))) %&gt;%
+  arrange(desc(mean.star)) %&gt;%
+  ggplot() + 
+  geom_point(aes(x=reorder(name,mean.star),y=mean.star,size=n))+
+  coord_flip() +
+  ylab(&#39;Mean Star Rating (1-5)&#39;) + 
+  xlab(&#39;Hotel&#39;)</code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+
+</div>
+<p>So The Venetian, Bellagio and The Cosmopolitan are clearly the highest rated hotels, while Luxor and LVH are the lowest rated. Ok, but what is behind these ratings? What are customers actually saying about these hotels? This is what we can hope to find through a text analysis.</p>
+<div id="constructing-a-document-term-matrix" class="section level2">
+<h2>Constructing a Document Term Matrix</h2>
+<p>The foundation of a text analysis is a <strong>document term matrix</strong>. This is an array where each row corresponds to a document and each column corresponds to a word. The entries of the array are simply counts of how many times a certain word occurs in a certain document. Let’s look at a simple example:</p>
+<pre class="r"><code>example &lt;- data.frame(document=c(1:4),
+                the.text=c(&quot;I have a brown dog. My dog loves walks.&quot;,
+                       &quot;My dog likes food.&quot;,
+                       &quot;I like food.&quot;,
+                       &quot;Some dogs are black.&quot;))</code></pre>
+<p>This data contains four documents. The first document contains 8 unique words (or “terms”). The word “brown” occurs once while “dog” occurs twice.</p>
+<pre class="r"><code>library(tm)
+
+text.c &lt;- VCorpus(DataframeSource(select(example,the.text)))
+DTM &lt;- DocumentTermMatrix(text.c,
+                          control=list(removePunctuation=TRUE,
+                                       wordLengths=c(1, Inf)))
+inspect(DTM)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 4, terms: 15)&gt;&gt;
+## Non-/sparse entries: 19/41
+## Sparsity           : 68%
+## Maximal term length: 5
+## Weighting          : term frequency (tf)
+## 
+##     Terms
+## Docs a are black brown dog dogs food have i like likes loves my some walks
+##    1 1   0     0     1   2    0    0    1 1    0     0     1  1    0     1
+##    2 0   0     0     0   1    0    1    0 0    0     1     0  1    0     0
+##    3 0   0     0     0   0    0    1    0 1    1     0     0  0    0     0
+##    4 0   1     1     0   0    1    0    0 0    0     0     0  0    1     0</code></pre>
+<p>The first statement creates a corpus from the data frame <em>example</em> using the <em>the.text</em> variable. Then we create a document term matrix using this corpus. The <em>control</em> statement tells R to keep terms of any length (without this short words will be dropped) and to remove punctuation before creating the DTM.</p>
+<p>In addition to removing punctuation (and lower-casing terms which is done by default) there are two other standard “cleaning” operations which are usually done. The first is to removed <em>stopwords</em> from the corpus. Stopwords are common words in a language that (usually) doesn’t carry any important significance in the analysis. For example, we could replace the first document in the example with “brown dog loves walks” and still be able to infer that the person writing this document talks about a brown dog. Of course, some information is lost in this process but for many applications this is not really an issue. The second standard operation is <em>stemming</em>. This creates root words, e.g., turns <em>dogs</em> into <em>dog</em> and <em>loves</em> into <em>love</em>:</p>
+<pre class="r"><code>text.c &lt;- VCorpus(DataframeSource(select(example,the.text)))
+DTM &lt;- DocumentTermMatrix(text.c,
+                          control=list(removePunctuation=TRUE,
+                                       wordLengths=c(1, Inf),
+                                       stopwords=TRUE,
+                                       stemming=TRUE
+                                       ))
+inspect(DTM)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 4, terms: 7)&gt;&gt;
+## Non-/sparse entries: 11/17
+## Sparsity           : 61%
+## Maximal term length: 5
+## Weighting          : term frequency (tf)
+## 
+##     Terms
+## Docs black brown dog food like love walk
+##    1     0     1   2    0    0    1    1
+##    2     0     0   1    1    1    0    0
+##    3     0     0   0    1    1    0    0
+##    4     1     0   1    0    0    0    0</code></pre>
+<p>Now let’s return to the hotel reviews. Let’s try to summarize the reviews for the Aria hotel:</p>
+<pre class="r"><code>aria.id &lt;-  filter(business, 
+        name==&#39;Aria Hotel &amp; Casino&#39;)$business_id
+aria.reviews &lt;- filter(reviews, 
+         business_id==aria.id)</code></pre>
+<p>Next, we construct the DTM by using the operations described above (and we also remove numbers from the reviews). We inspect the first 10 documents and 10 terms:</p>
+<pre class="r"><code>text.c &lt;- VCorpus(DataframeSource(select(aria.reviews,text)))
+
+DTM.aria &lt;- DocumentTermMatrix(text.c,
+                          control=list(removePunctuation=TRUE,
+                                       wordLengths=c(3, Inf),
+                                       stopwords=TRUE,
+                                       stemming=TRUE,
+                                       removeNumbers=TRUE
+                                       ))
+inspect(DTM.aria[1:10, 1:10])</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 10, terms: 10)&gt;&gt;
+## Non-/sparse entries: 0/100
+## Sparsity           : 100%
+## Maximal term length: 9
+## Weighting          : term frequency (tf)
+## 
+##     Terms
+## Docs aaa aaah aaauugghh aaay aah aback abandon abbrevi abc aberr
+##   1    0    0         0    0   0     0       0       0   0     0
+##   2    0    0         0    0   0     0       0       0   0     0
+##   3    0    0         0    0   0     0       0       0   0     0
+##   4    0    0         0    0   0     0       0       0   0     0
+##   5    0    0         0    0   0     0       0       0   0     0
+##   6    0    0         0    0   0     0       0       0   0     0
+##   7    0    0         0    0   0     0       0       0   0     0
+##   8    0    0         0    0   0     0       0       0   0     0
+##   9    0    0         0    0   0     0       0       0   0     0
+##   10   0    0         0    0   0     0       0       0   0     0</code></pre>
+<p>Ok - here we can already see a problem: Users are writing all kinds of weird stuff in their reviews! You know - stuff like “aaauugghh”. Terms like these are likely to occur in only a very few documents, which means that we should probably just get rid of them. To see how many unique terms actually are in the DTM we can just print it:</p>
+<pre class="r"><code>print(DTM.aria)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 2011, terms: 10197)&gt;&gt;
+## Non-/sparse entries: 158219/20347948
+## Sparsity           : 99%
+## Maximal term length: 117
+## Weighting          : term frequency (tf)</code></pre>
+<p>There are a total of 10,197 terms. That’s a lot and many of them are meaningless and <em>sparse</em>, i.e., they only occur in a few documents. The following command will remove terms that doesn’t occur in 99.5% of documents</p>
+<pre class="r"><code>DTM.aria.sp &lt;- removeSparseTerms(DTM.aria,0.995)
+inspect(DTM.aria.sp[1:10, 1:10])</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 10, terms: 10)&gt;&gt;
+## Non-/sparse entries: 2/98
+## Sparsity           : 98%
+## Maximal term length: 10
+## Weighting          : term frequency (tf)
+## 
+##     Terms
+## Docs abl absolut accept access accident accommod account acknowledg across
+##   1    0       0      0      0        0        0       0          0      0
+##   2    0       0      0      0        0        0       0          0      0
+##   3    0       0      0      0        0        0       0          0      0
+##   4    0       0      0      0        0        0       0          0      0
+##   5    0       0      0      0        0        0       0          0      0
+##   6    0       0      0      0        0        0       0          0      0
+##   7    0       0      0      0        0        0       0          0      0
+##   8    0       0      0      0        0        1       0          0      0
+##   9    0       0      0      0        0        0       0          0      0
+##   10   0       0      0      0        0        0       0          0      0
+##     Terms
+## Docs act
+##   1    0
+##   2    0
+##   3    0
+##   4    0
+##   5    1
+##   6    0
+##   7    0
+##   8    0
+##   9    0
+##   10   0</code></pre>
+<p>This looks much better. We now have a lot fewer terms in the DTM:</p>
+<pre class="r"><code>print(DTM.aria.sp)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 2011, terms: 1788)&gt;&gt;
+## Non-/sparse entries: 140761/3454907
+## Sparsity           : 96%
+## Maximal term length: 13
+## Weighting          : term frequency (tf)</code></pre>
+<p>So by removing all the sparse terms we want from 10,197 to 1,788 terms.</p>
+</div>
+<div id="summarizing-a-document-term-matrix" class="section level2">
+<h2>Summarizing a Document Term Matrix</h2>
+<p>Now that we have creating our document term matrix, we can start summarizing the corpus. What are the most frequent terms? Easy:</p>
+<pre class="r"><code>term.count &lt;- as.data.frame(as.table(DTM.aria.sp)) %&gt;%
+  group_by(Terms) %&gt;%
+  summarize(n=sum(Freq))
+
+term.count %&gt;% 
+  filter(cume_dist(n) &gt; 0.99) %&gt;%
+  ggplot(aes(x=reorder(Terms,n),y=n)) + geom_bar(stat=&#39;identity&#39;) + 
+  coord_flip() + xlab(&#39;Counts&#39;) + ylab(&#39;&#39;)</code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+
+</div>
+<p>A popular visualization tools of term counts is a word cloud. This is simply an alternative visual representation of the counts. We can easily make one:</p>
+<pre class="r"><code>library(wordcloud)
+popular.terms &lt;- filter(term.count,n &gt; 200)
+wordcloud(popular.terms$Terms,popular.terms$n,colors=brewer.pal(8,&quot;Dark2&quot;))</code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+
+</div>
+<p>Ok, now let’s look at associations between terms. When people talk about “room”, what other terms are used?</p>
+<pre class="r"><code>room &lt;- data.frame(findAssocs(DTM.aria.sp, &quot;room&quot;, 0.35)) # find terms correlated with &quot;room&quot; 
+
+room %&gt;%
+  add_rownames() %&gt;%
+  ggplot(aes(x=reorder(rowname,room),y=room)) + geom_point(size=4) + 
+  coord_flip() + ylab(&#39;Correlation&#39;) + xlab(&#39;Term&#39;) + 
+  ggtitle(&#39;Terms correlated with Room&#39;)</code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+
+</div>
+<p>This seems to be terms related to the check-in process. This is something that can be explored in more detail using topic models.</p>
+<p>How about “bathroom”?</p>
+<pre class="r"><code>bathroom &lt;- data.frame(findAssocs(DTM.aria.sp, &quot;bathroom&quot;, 0.2))
+
+bathroom %&gt;%
+  add_rownames() %&gt;%
+  ggplot(aes(x=reorder(rowname,bathroom),y=bathroom)) + geom_point(size=4) + 
+  coord_flip() + ylab(&#39;Correlation&#39;) + xlab(&#39;Term&#39;) + 
+  ggtitle(&#39;Terms correlated with Bathroom&#39;)</code></pre>
+<div class="figure">
+<img src="corpus_summary_files/figure-html/unnamed-chunk-17-1.png" alt="" />
+
+</div>
+<p>When talking about the bathroom users are most likely to mention “tub”“,”shower“,”light“,”toilet&quot; and “room”.</p>
+</div>
+<div id="exercise" class="section level2">
+<h2>Exercise</h2>
+<p>In the analysis above we pooled all users into the same document term matrix. This may be quite misleading for a heterogenous set of users. For example, we might suspect that satisfied and non-satisified users talk about different things - or talk differently about the same things.</p>
+<ul>
+<li>To look into this, start by creating two document term matrices, one for satisfied users (defined as having 5 star rated reviews) and one for non-satisfied users (here you can use reviews with 1 or 2 stars)</li>
+<li>Are the most frequently used words the same for the two segments?</li>
+<li>Find terms correlated with “room” and “desk” for each segment? Is it the same words? Do the correlated terms make sense?</li>
+</ul>
+</div>
+
+
+{% endblock main_txt_area %}

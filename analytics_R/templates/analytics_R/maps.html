@@ -1,0 +1,373 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+{% block main_txt_area %}
+
+<div id="header">
+<h1 class="title">Data Visualization in R: Making Maps</h1>
+</div>
+
+
+<hr />
+<p>Some data has a geographical dimension. We need tools for mapping data like this. In this section we will use using the <strong>ggmap</strong> package for mapping.</p>
+<p><strong>ggmap</strong> is bascially an extension of <strong>ggplot2</strong> and allows you to download open sourced map objects, e.g., Google Maps or Open Street Maps. To use this library you need to be online since it relies on a API calls when you initialize a new map.</p>
+<p>The <strong>ggmap</strong> package gives you the power of Google Maps at your hands:</p>
+<pre class="r"><code>library(ggmap)
+library(ggplot2)
+library(tidyr)
+
+ucsd.map &lt;- get_map(&quot;UC San Diego&quot;,zoom=15)
+ggmap(ucsd.map)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-1-1.png" alt="" />
+
+</div>
+<p>The <em>get_map</em> command downloads the map from Google Maps, while the <em>ggmap</em> actually constructs the plot. This map is not particularly interesting since it has no data on it. Let’s add some data on crime incidence. The following data contains information on all reported crimes in San Diego in 2012 ( <a href="http://data.sandiegodata.org/dataset/clarinova_com-crime-incidents-casnd-7ba4-extract">Source</a>). It has information on date and time of day of crime, location of crime (latitude, longitude) and the type of crime. We can add points indicating an incident to the map using the standard <em>geom_point</em> command:</p>
+<pre class="r"><code>load(&#39;data/san_diego_crime_2012.rda&#39;)  
+
+ggmap(ucsd.map) + 
+  geom_point(data=san.diego.crime,
+             aes(x=lon,y=lat),
+             size=4,alpha=.7)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+
+</div>
+<p>Nice - but what are these crimes? You can indicate this by coloring the points:</p>
+<pre class="r"><code>ggmap(ucsd.map) + 
+  geom_point(data=san.diego.crime,
+             aes(x=lon,y=lat,color=type),
+             size=4,alpha=.7)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+
+</div>
+<p>How about the whole city of San Diego? Let’s download a new map (for the whole city), and then concentrated on the most prevalent types of crime:</p>
+<pre class="r"><code>library(dplyr)
+san.diego.map &lt;- get_map(&quot;San Diego&quot;,zoom=11)
+
+san.diego.crime.sub &lt;- san.diego.crime %&gt;%
+  filter(type %in% c(&#39;BURGLARY&#39;,&#39;ASSAULT&#39;,&#39;THEFT/LARCENY&#39;,
+                     &#39;DRUGS/ALCOHOL VIOLATIONS&#39;,&#39;MOTOR VEHICLE THEFT&#39;,&#39;DUI&#39;)) 
+
+
+ggmap(san.diego.map) + 
+  geom_point(data=san.diego.crime.sub,aes(x=lon,y=lat,color=type),size=.15,alpha=.3) + 
+  facet_wrap(~type) + 
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+
+</div>
+<div id="mapping-the-citibike-data" class="section level2">
+<h2>Mapping the Citibike Data</h2>
+<p>We can start by mapping the bike stations in the system. First, load the data, then extract latitude and longitude for each station (along with number of trips originating from the station). Then plot station locations:</p>
+<pre class="r"><code>citibike &lt;- readRDS(&#39;data/201508.rds&#39;) 
+
+## get station info
+station.info &lt;- citibike %&gt;%
+  group_by(start.station.id) %&gt;%
+  summarise(lat=as.numeric(start.station.latitude[1]),
+            long=as.numeric(start.station.longitude[1]),
+            name=start.station.name[1],
+            n.trips=n())
+
+
+## get map and plot station locations 
+newyork.map &lt;- get_map(location= &#39;Lower Manhattan, New York&#39;, 
+                       maptype=&#39;roadmap&#39;, color=&#39;bw&#39;,source=&#39;google&#39;,zoom=13)
+
+ggmap(newyork.map) + 
+  geom_point(data=station.info, aes(x=long,y=lat), color=&#39;red&#39;,size=2)+
+  theme(axis.ticks = element_blank(), axis.text = element_blank())+
+  xlab(&#39;&#39;)+ylab(&#39;&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-5-1.png" alt="" />
+
+</div>
+<p>Ok - now add information on station activity:</p>
+<pre class="r"><code> ggmap(newyork.map) + 
+  geom_point(data=station.info,aes(x=long,y=lat,color=n.trips),size=3,alpha=0.75)+
+  scale_colour_gradient(high=&quot;red&quot;,low=&#39;green&#39;)+ 
+  theme(axis.ticks = element_blank(),axis.text = element_blank())+
+  xlab(&#39;&#39;)+ylab(&#39;&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-6-1.png" alt="" />
+
+</div>
+<p>Let’s finish this section with a slightly more complicated analysis: Take the busiest station in the system (in terms of starting trips). Then visualize to where the most frequently occurring trips are.</p>
+<p>We need to first find the busiest station:</p>
+<pre class="r"><code>top.station &lt;- citibike %&gt;%
+  group_by(start.station.id) %&gt;%
+  summarise(n.trips=n(),
+            name=start.station.name[1],
+            lat=start.station.latitude[1],
+            lon=start.station.longitude[1]) %&gt;%            
+  arrange(desc(n.trips)) %&gt;%
+  slice(1)
+
+top.station</code></pre>
+<pre><code>## Source: local data frame [1 x 5]
+## 
+##   start.station.id n.trips            name      lat       lon
+##              (int)   (int)           (chr)    (dbl)     (dbl)
+## 1              521   14498 8 Ave &amp; W 31 St 40.75097 -73.99444</code></pre>
+<p>So the most active station is station 521. Now extract trips originating here and find the top 20 trips:</p>
+<pre class="r"><code>busy.station.out &lt;- citibike %&gt;%
+  filter(start.station.id==521) %&gt;%
+  group_by(end.station.id) %&gt;%
+  summarise(n.trips=n(),
+            name=end.station.name[1],
+            start.lat = as.numeric(start.station.latitude[1]),
+            start.lon = as.numeric(start.station.longitude[1]),
+            end.lat = as.numeric(end.station.latitude[1]),
+            end.lon = as.numeric(end.station.longitude[1])) %&gt;%
+  arrange(desc(n.trips)) %&gt;% 
+  slice(1:20)</code></pre>
+<p>Now plot the extracted routes:</p>
+<pre class="r"><code>map521 &lt;- get_map(location = c(lon = top.station$lon, 
+                               lat = top.station$lat), color=&#39;bw&#39;,source=&#39;google&#39;,zoom=14)
+
+
+ggmap(map521) + 
+  geom_segment(data=busy.station.out,aes(x=start.lon,y=start.lat,
+                   xend=end.lon,yend=end.lat,
+                   color=n.trips),
+               size=1,alpha=0.75) +
+  geom_point(data=busy.station.out,aes(x=end.lon,y=end.lat,color=n.trips), size=3,alpha=0.75) + 
+  geom_point(data=top.station, aes(x=lon,y=lat), size=4, alpha=0.5) +
+  scale_colour_gradient(high=&quot;red&quot;,low=&#39;green&#39;) + 
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank()) +
+  xlab(&#39;&#39;)+ylab(&#39;&#39;) +
+  ggtitle(paste0(&#39;Top 20 Trips starting at &#39;, top.station$name))</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-9-1.png" alt="" />
+
+</div>
+</div>
+<div id="mapping-the-taxi-data" class="section level2">
+<h2>Mapping the Taxi Data</h2>
+<p><img src="pics/met2.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> There are many aspects of the Taxi data that could be interesting to map. Here we will focus on two smaller case studies.</p>
+<div id="who-goes-to-the-metropolitan-museum-of-art" class="section level3">
+<h3>Who goes to the Metropolitan Museum of Art?</h3>
+<p>Located on the Upper East Side of Manhattan, and one of the prime museum attractions in New Work, this massive art museum draws large crowds every day. Let’s focus on visitors who take a taxi to the museum. What can we say about these visitors?</p>
+<p>First we need to decide on what trips might be trips to the museum. This is not obvious - people can get off a cab near the museum but not actually go to the museum. We will ignore difficulties like this in the following. Let’s start by getting a map of the city block where the museum is located:</p>
+<pre class="r"><code>ny.map &lt;- get_map(&quot;1015 5th Ave, New York, NY&quot;, color=&quot;bw&quot;,zoom=18)
+ggmap(ny.map)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-10-1.png" alt="" />
+
+</div>
+<p>Using the latitude and longitude information the map, we can grab trips that end near the museum entry:</p>
+<pre class="r"><code>library(lubridate)
+## Pick coordinates that approximates dropoffs near the Met
+lat &lt;- c(40.7785,40.780)
+lon &lt;- c(-73.963,-73.9615)
+
+taxi &lt;- readRDS(&#39;data/yellow_trip_2015-06.rds&#39;) %&gt;%
+  mutate(weekday.pickup = wday(tpep_pickup_datetime,label=TRUE,abbr=TRUE),                           
+         weekday.dropoff = wday(tpep_dropoff_datetime,label=TRUE,abbr=TRUE),                           
+         hour.trip.start = factor(hour(tpep_pickup_datetime)),                                 
+         hour.trip.end = factor(hour(tpep_dropoff_datetime)),                                  
+         day = factor(mday(tpep_dropoff_datetime)),                                            
+         trip.duration = as.numeric(difftime(tpep_dropoff_datetime,tpep_pickup_datetime,units=&quot;mins&quot;)), 
+         trip.speed = ifelse(trip.duration &gt; 1, trip_distance/(trip.duration/60), NA),          
+         payment_type2 = cut(payment_type, 
+                             breaks = c(0,1,2,5), 
+                             labels=c(&#39;Credit Card&#39;,&#39;Cash&#39;,&#39;Other&#39;))) %&gt;%
+  filter(day %in% c(1:28))
+
+## Filter data for drop-offs near the Met
+taxi.drop.met &lt;- taxi %&gt;%
+  filter(dropoff_longitude &gt; lon[1] &amp; dropoff_longitude &lt; lon[2],
+         dropoff_latitude &gt; lat[1] &amp; dropoff_latitude &lt; lat[2]) 
+
+ggmap(ny.map) + 
+  geom_point(data=taxi.drop.met,
+             aes(x=dropoff_longitude,y=dropoff_latitude),size=.03,alpha=0.3,color=&quot;red&quot;)+
+  ggtitle(&#39;Taxi Dropoffs near the Met&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-11-1.png" alt="" />
+
+</div>
+<p>Let’s assume that these represent trips to the Met. Where did they originate? We can answer that by plotting the origin latitude and longitude. We need a new map to capture a wider area - here we center it around Central Park:</p>
+<pre class="r"><code>ny.map &lt;- get_map(&quot;Central Park, New York, NY&quot;, color=&quot;bw&quot;,zoom=13)
+
+ggmap(ny.map) + 
+  geom_point(data=taxi.drop.met,
+             aes(x=pickup_longitude,y=pickup_latitude),size=.03,alpha=0.3,color=&quot;blue&quot;)+
+  geom_point(data=taxi.drop.met,
+             aes(x=dropoff_longitude,y=dropoff_latitude),size=.03,alpha=0.3,color=&quot;red&quot;)+
+   theme(axis.ticks = element_blank(),
+        axis.text = element_blank())</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+
+</div>
+<p>The majority of trips ending with a dropoff near the Met originate on the Upper East and West side and the Midtown neighborhood. Very few trips originate in the lower part of Manhattan and from Harlem.</p>
+<p>What time do these trips end?</p>
+<pre class="r"><code>taxi.drop.met %&gt;%
+  group_by(hour.trip.end) %&gt;%
+  summarize(n=n()) %&gt;%
+  ggplot(aes(x=hour.trip.end,y=n)) + geom_point() + 
+  geom_line(aes(group=1),linetype=&#39;dotted&#39;)+
+  ylab(&#39;Trips&#39;)+xlab(&#39;Hour of Day&#39;)+
+  ggtitle(&#39;Taxi Arrivals near the Met by Time of Day&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-13-1.png" alt="" />
+
+</div>
+<p>What time do you think the Met opens……?</p>
+<p>How are trips distributed throughout weekdays?</p>
+<pre class="r"><code>taxi.drop.met %&gt;%
+  ggplot(aes(x=weekday.dropoff)) + 
+  geom_bar() + xlab(&#39;Day of Week&#39;) + ylab(&#39;Trips&#39;) +
+  ggtitle(&#39;Taxi Arrivals near the Met by Weekday&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+
+</div>
+<p>How do people pay?</p>
+<pre class="r"><code>library(scales)
+
+taxi.drop.met %&gt;%
+  filter(!payment_type2==&#39;Other&#39;) %&gt;%
+  ggplot(aes(x=payment_type2)) + 
+  geom_bar(aes(y=..count../sum(..count..),fill=payment_type2)) +
+  scale_y_continuous(labels=percent)+
+  theme(legend.position=&quot;none&quot;)+
+  xlab(&#39;Passenger Count&#39;)+ylab(&#39;Percent of Trips&#39;)+
+  ggtitle(&#39;Payment for Taxi Trips to the Met&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+
+</div>
+<p>Is type of payment correlated with origin of trip?</p>
+<pre class="r"><code>ggmap(ny.map) + 
+  geom_point(data=filter(taxi.drop.met,!payment_type2==&#39;Other&#39;),
+             aes(x=pickup_longitude,y=pickup_latitude,color=payment_type2),size=.05,alpha=0.3) + 
+  facet_wrap(~payment_type2)+
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+
+</div>
+<p>It seems like Cash trips have a relatively higher likelihood of originating in the Midtown district.</p>
+<p>Finally, how do people tip?</p>
+<pre class="r"><code>taxi.drop.met %&gt;%
+  filter(payment_type2==&#39;Credit Card&#39;) %&gt;%
+  mutate(tip.pct=tip_amount/(total_amount-tip_amount)) %&gt;%
+  filter(tip.pct &lt; 0.40) %&gt;%
+  ggplot(aes(x=tip.pct)) + geom_density(fill=&#39;red&#39;,alpha=0.4) +
+  scale_x_continuous(labels=percent)+xlab(&#39;Tip Size&#39;)+
+  ggtitle(&#39;Tips for Taxi Trips to the Met&#39;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-17-1.png" alt="" />
+
+</div>
+</div>
+<div id="hours-in-the-meatpacking-district" class="section level3">
+<h3>12 Hours in the Meatpacking District</h3>
+<p><img src="pics/meat2.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"></p>
+<p>In the early 20th century, the meatpacking district in Manhattan was home to a large number of slaughterhouses and meat packing plants. In the early 21st century, it is instead home to a large number of bars and restaurants. It is a very popular destination for going out in Manhattan. But when and where do people go out?</p>
+<p>Let’s diagnose the taxi traffic patterns over the 12 hour period from Thursday 6pm to Friday 5am. Are their particular spots where riders are dropped off and picked up? And how does this activity change over the 12 hour period? A neat way to visualize this is to combine the “small multiples” approach (using ggplot’s <strong>facet_wrap</strong> option) with a heatmap of activity. This heatmap will “smooth out” neighboring points on the map. Clusters with high activity (i.e., many dropoffs (or pickups)) will be “hotter” (here more red).</p>
+<p>We start by grabbing a map centered on the meatpacking district. We choose a high level of zoom:</p>
+<pre class="r"><code>ny.map &lt;- get_map(&quot;Meatpacking District, New York, NY&quot;, color=&quot;bw&quot;,zoom=17)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-19-1.png" alt="" />
+
+</div>
+<p>Next we pick the required slice of time and add some nice labels:</p>
+<pre class="r"><code>weekday.time.segment &lt;- c(&#39;Thurs 18&#39;,&#39;Thurs 19&#39;,&#39;Thurs 20&#39;,&#39;Thurs 21&#39;,&#39;Thurs 22&#39;,&#39;Thurs 23&#39;,&#39;Fri 0&#39;,&#39;Fri 1&#39;,&#39;Fri 2&#39;,&#39;Fri 3&#39;,&#39;Fri 4&#39;,&#39;Fri 5&#39;)
+weekday.time.segment.labels &lt;- c(&#39;Thu 6PM&#39;,&#39;Thu 7PM&#39;,&#39;Thu 8PM&#39;,&#39;Thu 9PM&#39;,&#39;Thu 10PM&#39;,&#39;Thu 11PM&#39;,&#39;Fri 12AM&#39;,&#39;Fri 1AM&#39;,&#39;Fri 2AM&#39;,&#39;Fri 3AM&#39;,&#39;Fri 4AM&#39;,&#39;Fri 5AM&#39;)
+
+
+plot.df &lt;- taxi %&gt;%
+  unite(weekday.drop.time, weekday.dropoff,hour.trip.end,sep=&quot; &quot;) %&gt;%
+  filter(weekday.drop.time %in% weekday.time.segment) %&gt;%
+  mutate(weekday.drop.time = factor(weekday.drop.time,
+                                    levels=weekday.time.segment,
+                                    labels=weekday.time.segment.labels))</code></pre>
+<p>Finally, we plot the heatmaps:</p>
+<pre class="r"><code>ggmap(ny.map)+
+  stat_density2d(data = plot.df,
+                 aes(x = dropoff_longitude, y = dropoff_latitude,fill = ..level.., alpha = ..level..), 
+                 geom = &quot;polygon&quot;) + 
+  scale_fill_gradient(low = &quot;green&quot;, high = &quot;red&quot;) + 
+  scale_alpha(range = c(0, 0.75), guide = FALSE) +
+  ggtitle(&#39;Meatpacking District Taxi Ride Dropoffs&#39;)+
+  facet_wrap(~weekday.drop.time,nrow = 3)+
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-21-1.png" alt="" />
+
+</div>
+<p>Let’s repeat this exercise for pick-ups:</p>
+<pre class="r"><code>plot.df &lt;- taxi %&gt;%
+  unite(weekday.pickup.time, weekday.dropoff,hour.trip.start,sep=&quot; &quot;) %&gt;%
+  filter(weekday.pickup.time %in% weekday.time.segment) %&gt;%
+  mutate(weekday.pickup.time = factor(weekday.pickup.time,
+                                    levels=weekday.time.segment,
+                                    labels=weekday.time.segment.labels))
+
+ggmap(ny.map)+
+  stat_density2d(data = plot.df,
+                 aes(x = pickup_longitude, y = pickup_latitude,fill = ..level.., alpha = ..level..), 
+                 geom = &quot;polygon&quot;) + 
+  scale_fill_gradient(low = &quot;green&quot;, high = &quot;red&quot;) + 
+  scale_alpha(range = c(0, 0.75), guide = FALSE) +
+  ggtitle(&#39;Meatpacking District Taxi Ride Pick-ups, June 2015&#39;)+
+  facet_wrap(~weekday.pickup.time,nrow = 3)+
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-22-1.png" alt="" />
+
+</div>
+</div>
+</div>
+<div id="making-maps-with-ggplot2" class="section level2">
+<h2>Making Maps with ggplot2</h2>
+<p>We have been using the ggmap package for maps. You can also make maps with ggplot2. <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/CLIWOC15.csv">This</a> file contains data on ship positions (and other information) for ships sailing on the main oceanic shipping routes between 1750 and 1850. This is based on digitizing old ship logbooks (for more information, see the source <a href="https://pendientedemigracion.ucm.es/info/cliwoc/" class="uri">https://pendientedemigracion.ucm.es/info/cliwoc/</a>. We can use ggplot to do a quick visualization of the different strategies employed by the colonial powers of that time:</p>
+<pre class="r"><code>library(readr)
+library(dplyr)
+library(ggplot2)
+
+ship &lt;- read_csv(&#39;data/CLIWOC15.csv&#39;)
+
+plot.title = &#39;Ship Positions by Nationality, 1750-1850&#39;
+plot.subtitle = &#39;Source: Ship Log Books, https://pendientedemigracion.ucm.es/info/cliwoc/&#39;
+
+ggplot() +   
+  borders(&quot;world&quot;, colour=&quot;gray50&quot;, fill=&quot;gray50&quot;) +
+  geom_point(data = filter(ship, Nationality %in% c(&#39;British&#39;,&#39;Dutch&#39;,&#39;Spanish&#39;,&#39;French&#39;)),
+                           mapping = aes(Lon3,Lat3,color=Nationality), alpha=0.01,size=1) +
+  ylim(-75,80)+
+  facet_wrap(~Nationality)+
+  theme(legend.position=&quot;none&quot;)+
+  ggtitle(bquote(atop(.(plot.title), atop(italic(.(plot.subtitle)), &quot;&quot;)))) </code></pre>
+<div class="figure">
+<img src="maps_files/figure-html/unnamed-chunk-23-1.png" alt="" />
+
+</div>
+</div>
+
+{% endblock main_txt_area %}
+
+

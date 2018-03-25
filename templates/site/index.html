@@ -1,0 +1,54 @@
+{% extends "site/base_avarun.html" %}
+{% block home_img %}
+<!-- place occupition for navbar -->
+{#<br><br>#}
+<!-- place occupition end -->
+  <div class = "d-none d-lg-block w-100" style="height:400px;background-image:url('/static/sitebase/img/home_background.jpg');background-size:cover;background-position:50% 50%;">
+  <h1 style="text-align: center;color:#FFFFFF;">
+  <br><br>
+   仰望星空，寻找星星运行的轨迹<br>探索数据，发现现象背后的真相
+  </h1>
+  <h2 style="text-align: center;color:#FFFFFF;">
+  耐心、细致、数据和科学方法<h2>
+  </div>
+{% endblock home_img %}
+
+{% block content %}
+  <div class="row no-gutters border border-white">
+    <div class="col-sm border border-white" style="height:240px;">
+       <div class="media" style="padding:15%;">
+         <a href={% url "analytics_R:index" %} class="align-self-start mr-3" style="width:25%;">
+         <img style="width:100%;" src='/static/sitebase/img/learning.png' alt="Generic placeholder image">
+         </a>
+         <div class="media-body">
+           <h5 class="mt-0">工具学习</h5>
+           <p class="mb-0">学习用R，Python做数据分析，从入门到熟练掌握</p>
+         </div>
+       </div>
+    </div>
+    <div class="col-sm border border-white" style="height:240px;">
+        <div class="media" style="padding:15%;">
+         <a href="/modeling/" class="align-self-start mr-3" style="width:25%;">
+         <img  style="width:100%;" src='/static/sitebase/img/analysis.png' alt="Generic placeholder image">
+         </a>
+         <div class="media-body">
+           <h5 class="mt-0">数据建模</h5>
+           <p class="mb-0">使用优化求解，变量模拟，机器学习建模解决商业问题，提升效率 </p>
+         </div>
+       </div> 
+    </div>
+    <div class="col-sm border border-white" style="height:240px;">
+         <div class="media" style="padding:15%;">
+         <a href={% url "stocksdemo:index" %} class="align-self-start mr-3" style="width:25%;">
+         <img style="width:100%" src='/static/sitebase/img/stock.png' alt="Generic placeholder image">
+         </a>
+         <div class="media-body">
+           <h5 class="mt-0">股指预测</h5>
+           <p class="mb-0">尝试使用机器学习，神经网络建模预测股指 </p>
+         </div>
+       </div> 
+    </div>
+  </div>
+{% endblock content %}
+
+

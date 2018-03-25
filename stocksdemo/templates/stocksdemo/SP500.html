@@ -1,0 +1,42 @@
+{% extends "site/base_avarun.html" %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-8">
+                <article>
+                    <div id='intro'>
+                    <p>NOT a commercial site! All data comes from Yahoo Finance and otherinternet resources. NO guarantee for accuracy. Main idea for the site is to explore and experiment with AI and ML technology and their application in index forecasting and stock portfolio selection.BECAUTIOUS with the data presented hereafter.THANKS！ </p>
+
+                    </div>
+                    <h1>SP500 Forecast by RNN</h1>
+                    <p id="subtitle1">
+                    <strong>
+		    </strong>
+        	    </p>
+                    <p>The Chart below shows SP500 index forecast by a simple RNN model, predicting index values for next five trading days at 9:30 PM (US/Eastern time) each day according the closing index values of that day and preceding 29 days.  （Blue line is actual index values. Orange line is predicted values after last trading days closing. Green line is forecast values for next five trading days.)</p>
+                    <iframe width="800" height="400" frameborder="0" scrolling="no" src="/static/stocksdemo/plotly01_en.html"></iframe>
+		    <p id="subtitle2">
+		    <strong></strong>
+		    </p>
+                    <p>Next table shows the forecast values for next five days and their probabilities -the most likely instances are adopted in the chart above. The model will generate a probability distribution for the index to be forecast and choose the most likely instances as its forecast values. The top 2 forecast values and their probabilities would be helpful. </p>
+                    <iframe width="700" height="200" frameborder="0" scrolling="no" src="/static/stocksdemo/my_table_en.html"></iframe>
+                    <p>
+		    <p id="subtitle3">
+		    <strong>Note:</strong>
+		    </p>					
+                    <ul>
+                         <li>The forecast value is actually a range around the number instead of a precise value. And the probability is the probability of the value falling into the range. Giving out a precise value is for simplicity reason and easiness to demo in chart!</li>
+                         <li>The probability is a result of the model's algorithm, not the probability of actual occurrence. It is more meaningful when compared to itself than considering the absolute value.</li>
+                         <li>Forecast value for next day is better than the rest, if any good.</li>
+                    </ul>
+		    <p id="subtitle4">
+		    <strong></strong>
+		    </p>
+                    <p>The site is set for personal interest. Not used for business and investment decisions. the user hold the liability of his or her own decision whether or not using the result displayed in this site. Any idea and suggestion please mail to  <code>biljiang@outlook.com</code> .</p>
+		    <p id="subtitle5">
+		    <strong>THANKS!</strong>
+		    </p>
+                   
+                </article>
+</div>
+</div>
+{% endblock content %}

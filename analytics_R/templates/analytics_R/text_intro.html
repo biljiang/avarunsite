@@ -1,0 +1,40 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+{% block main_txt_area %}
+
+
+<div id="header">
+<h1 class="title">Text as Data</h1>
+</div>
+
+
+<hr />
+<p><img src="pics/books.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> Any information that can be digitized is data. Text can be digitized (you are reading some in digital format right now). Therefore text (and speech) is data. We can synthesize large amounts of text using analytical tools which allows us to see patterns that otherwise would be hidden. This is, of course, of huge importance here in the early 21st century where vast amounts of text is generated and published in various formats every day.</p>
+<p>As a first example of using text as data, consider Google’s Ngram database. This contains the word frequencies of all words in the collection of books (known as a “corpus”) scanned by Google. This is a lot - a lot a lot (supposedly around 500 billion words - but really - with numbers like this who is even counting anymore?). You can access the database through Google’s web interface <a href="https://books.google.com/ngrams">here</a>. However, that’s for the common folk - as a serious data scientist you want to load the data into R on your own and then use it for visualizations and other analyses. You can do this through the R library <strong>ngramr</strong>. It is laughably easy to do. Let’s see the evolution of societal hot button issues over the last 60 years as reflected in word frequencies in the Google Ngram corpus:</p>
+<pre class="r"><code>library(ngramr)
+library(ggplot2)
+
+ng  &lt;- ngram(c(&quot;abortion&quot;,&quot;homosexual&quot;,&quot;gun rights&quot;,&quot;communism&quot;,&quot;capitalism&quot;,
+               &quot;global warming&quot;,&quot;drugs&quot;,&quot;pornography&quot;), year_start = 1950)
+
+ggplot(ng, aes(x=Year, y=Frequency, color=Phrase)) +
+  geom_line() + facet_wrap(~Phrase,scales=&#39;free&#39;,nrow = 2) + 
+  theme(legend.position=&quot;none&quot;,
+        axis.text.x = element_text(angle = 45, hjust = 1))</code></pre>
+<p><img src="text_intro_files/figure-html/unnamed-chunk-1-1.png" title="" alt="" style="display: block; margin: auto;" /></p>
+<p>The word frequencies are collected in the ng data frame which we then visualize using ggplot. We see some issues increasing and then decreasing (e.g., abortion and communism) while others don’t appear until late in the period (e.g., global warming). Text - in this case books - reflects changes in society.</p>
+<p>Playing with the Google Ngram database has high entertainment value but we need more flexible tools. For example, we need to be able to analyze our own text collections rather than relying on Google’s. This is the subject of the next section.</p>
+
+
+{% endblock main_txt_area %}

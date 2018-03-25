@@ -1,0 +1,415 @@
+{% extends "analytics_R/index.html" %}
+{% load static %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">数据汇总</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+{% block main_txt_area %}
+
+<div id="header">
+<h1 class="title">Group Summaries</h1>
+</div>
+
+
+<hr />
+<p><img src="/static/analytics_R/Lego_Color_Bricks.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> Imagine that you are three years old again and someone asks you to take a pile of Lego bricks and count the number of bricks of each color. How would you do this?</p>
+<p>If you are a smart three year old you would intuitively use the following algorithm: First divide all bricks into separate piles of identical color, i.e., a pile of red bricks, another of green bricks and so on, and then count the number bricks in each pile. Easy.</p>
+<p>Now imagine that you are a 25 year old analyst and your manager asks you to take the company customer database and compute average transaction size per customer for the most recent quarter. This is essentially the Lego problem and you should solve it the same way: First divide transactions into “customer piles” and then compute the average of each pile. This idea of taking a collection of objects and first sorting them and then performing some operation is also the foundation of many modern large scale computing frameworks such as <a href="http://en.wikipedia.org/wiki/MapReduce">MapReduce</a>.</p>
+<div id="group-summaries-in-r-with-dplyr" class="section level3">
+<h3>Group Summaries in R with dplyr</h3>
+<p>Whenever you are faced with an objective like the ones above, you should think: <strong>dplyr</strong>. This is an R package for performing group operations. Once you understand how to use dplyr, it will change your life as a data scientist and - quite possibly - permanently make you are a happier person. Seriously.</p>
+<p>The basic structure of a dplyr statement is</p>
+<ol style="list-style-type: decimal">
+<li>Take some data</li>
+<li>Define the group assignments for the data</li>
+<li>Perform some operation on each group</li>
+</ol>
+<p>Let us try this out on some real data. You can get all the code and data for this lesson from <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/lessons/Group%20Summaries.zip">this</a> zip file.</p>
+<div id="example-open-payments" class="section level4">
+<h4>Example: Open Payments</h4>
+<p><a href="http://www.cms.gov/OpenPayments/index.html"> <img src={% static "analytics_R/cms.PNG" %} align="right" alt="WWW" width="300" height="200" hspace="20"> </a> Pharmaceutical and other health care companies often have “financial relationships” with medical doctors and hospitals. This involves payments and gifts from the company to the doctor. By federal law these transfers have to be publicly disclosed in a database. This means that anyone can download the data and inspect it. You can find the all the details and documentation if you click on the image to the right. The full data is very large so we will use a subset of it that only includes physicians licensed in the state of California. You can download this file in R format <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/OPPR_CA.rds">here</a> (if you are of the attitude “to hell with it - give the me full data!”, you can get that in R format <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/OPPR_ALL_DTL_GNRL_12192014.rds">here</a>).</p>
+<pre class="r"><code>oppr.ca &lt;- readRDS(&#39;data/OPPR_CA.rds&#39;)</code></pre>
+<p>This file contains a total of 223,039 payments (=number of rows) for 37,131 physicians. We will use dplyr to compute various summaries of this data.</p>
+<p>Let us start with a simple objective: For each physician we wish to know the number and total sum of payments received. We can do this calculation as:</p>
+<pre class="r"><code>library(dplyr)
+
+phys.amount &lt;- oppr.ca %&gt;%
+  group_by(Physician_Profile_ID) %&gt;%
+  summarize(total.payments=sum(Total_Amount_of_Payment_USDollars),
+            number.payments=n())</code></pre>
+<p>Note the use of the “%&gt;%”-syntax. This is referred to as <em>chaining</em> in “R-speak”, in that each of the statements are chained together. This makes for code that is very readable - almost like reading a cook book recipe (“take the oppr.ca data frame, then group it by physician and then calculate the number and sum of payments to each physician”).</p>
+<p>The result is a 37,131 x 3 data frame - one row for each physician. Here are the first ten rows:</p>
+<pre><code>   Physician_Profile_ID total.payments number.payments
+1                    56          84.81               4
+2                   114         169.94               1
+3                   152         278.12              12
+4                   164          10.00               1
+5                   167       17942.60               7
+6                   176         706.60              14
+7                   320         117.84               6
+8                   441          38.26               4
+9                   492          72.49               4
+10                  493          18.31               1</code></pre>
+<p>The first physician received $84.81 in 4 payments, while the third received $278.12 in 12 payments. By default dplyr will sort the result according to the order in which the grouping variable occurs in the source data. But we can easily change this. Suppose we wanted the results sorted in descending order of total payments. We can do this by adding another link in the chain using the <strong>arrange</strong> verb:</p>
+<pre class="r"><code>phys.amount &lt;- oppr.ca %&gt;%
+  group_by(Physician_Profile_ID) %&gt;%
+  summarize(total.payments=sum(Total_Amount_of_Payment_USDollars),
+            number.payments=n()) %&gt;%
+  arrange(desc(total.payments))</code></pre>
+<p>with output (first 10 rows):</p>
+<pre><code>   Physician_Profile_ID total.payments number.payments
+1                409860      2413280.5              20
+2                421550      2304899.2               4
+3                 40495      2001249.0              27
+4                300058      1185839.7              96
+5                429298      1114184.0               2
+6                429305       734590.8               5
+7                212521       361795.3              22
+8                457294       241600.0               1
+9                512530       232265.0               5
+10                76646       219282.5             116</code></pre>
+<p>Note that if we had already generated the original phys.amount data frame (without arrange), we could just have used</p>
+<pre class="r"><code>phys.amount &lt;- phys.amount %&gt;%
+  arrange(desc(total.payments))</code></pre>
+<p>or - if you load the magrittr library that allows for additional chaining syntax -</p>
+<pre class="r"><code>library(magrittr)
+phys.amount %&lt;&gt;% arrange(desc(total.payments))</code></pre>
+<p>Suppose we wanted to add the information about each physicians specialty. This is obviously fixed for each physician so here we just need to grab and store the first value in the physician-specific slice of the data:</p>
+<pre class="r"><code>phys.amount &lt;- oppr.ca %&gt;%
+  group_by(Physician_Profile_ID) %&gt;%
+  summarize(total.payments=sum(Total_Amount_of_Payment_USDollars),
+            number.payments=n(),
+            Specialty = Physician_Specialty[1]) %&gt;%
+  arrange(desc(total.payments))</code></pre>
+<pre><code>   Physician_Profile_ID total.payments number.payments
+1                409860      2413280.5              20
+2                421550      2304899.2               4
+3                 40495      2001249.0              27
+4                300058      1185839.7              96
+5                429298      1114184.0               2
+6                429305       734590.8               5
+7                212521       361795.3              22
+8                457294       241600.0               1
+9                512530       232265.0               5
+10                76646       219282.5             116
+                                                                                            Specialty
+1                           Allopathic &amp; Osteopathic Physicians/ Orthopaedic Surgery/ Sports Medicine
+2                                Allopathic &amp; Osteopathic Physicians/ Surgery/ Surgical Critical Care
+3                                                                 Other Service Providers/ Specialist
+4                                            Allopathic &amp; Osteopathic Physicians/ Orthopaedic Surgery
+5  Allopathic &amp; Osteopathic Physicians/ Orthopaedic Surgery/ Adult Reconstructive Orthopaedic Surgery
+6                                               Allopathic &amp; Osteopathic Physicians/ General Practice
+7                                           Allopathic &amp; Osteopathic Physicians/ Neurological Surgery
+8                            Allopathic &amp; Osteopathic Physicians/ Internal Medicine/ Gastroenterology
+9                                                     Allopathic &amp; Osteopathic Physicians/ Pediatrics
+10                             Allopathic &amp; Osteopathic Physicians/ Psychiatry &amp; Neurology/ Neurology</code></pre>
+<p>So the doctor with the highest total payment was an orthopaedic surgeon. In fact, 3 of the top 5 highest paid were orthopaedic surgeons.</p>
+<p>Suppose now we only wanted to include a subset of the payments. We can do this by filtering out the rows of interest. The data contains payments of different forms (cash, stock etc.) and for different activities (consulting, speaker fee, gift, entertainment etc.). Let’s find the physicians who received the highest payments for food and beverage. We can do this by adding a <strong>filter</strong> statement to the chain:</p>
+<pre class="r"><code>phys.amount.food &lt;- oppr.ca %&gt;%
+  filter(Nature_of_Payment_or_Transfer_of_Value==&#39;Food and Beverage&#39;) %&gt;%
+  group_by(Physician_Profile_ID) %&gt;%
+  summarize(total.payments=sum(Total_Amount_of_Payment_USDollars),
+            number.payments=n()) %&gt;%
+  arrange(desc(total.payments))</code></pre>
+<p>The top 10 are:</p>
+<pre><code>   Physician_Profile_ID total.payments number.payments
+1                185768        6026.23             128
+2                161479        5669.56              53
+3                 53318        5476.66             139
+4                 32647        5224.77              37
+5                 28279        4362.86               2
+6                 56534        4352.18              12
+7                264003        3896.13              45
+8                 56980        3839.69             106
+9                157448        3687.22               8
+10                54371        3617.46             116</code></pre>
+<p>So far we have grouped the data by physicians. Suppose we wanted to focus the analysis on groups of physicians by specialty rather than individuals. Well, that’s easy - just group by physician specialty instead of physician ID:</p>
+<pre class="r"><code>spec.amount &lt;- oppr.ca %&gt;%
+  group_by(Physician_Specialty) %&gt;%
+  summarize(total=sum(Total_Amount_of_Payment_USDollars),
+            n=n(),
+            n.phys=n_distinct(Physician_Profile_ID)) %&gt;%
+  mutate(avg.payment=total/n,
+         avg.payment.phys=total/n.phys) %&gt;%
+  arrange(desc(total))</code></pre>
+<p>Here we first calculate the total amount, number of payments and number of physicians receiving payments per field. We then calculate two derived quantities: average payment size and average payment size per physician. This is done by using the <strong>mutate</strong> statement. This simply creates new variables from old ones (adding new “columns” to the data frame). Notice again the “recipe”&quot; form of the statements:</p>
+<ol style="list-style-type: decimal">
+<li>Take the raw data</li>
+<li>Group it by physician specialty</li>
+<li>For each specialty calculate summaries of interest</li>
+<li>Take the result of 3. and calculate derived quantities of interest</li>
+<li>Sort the result by total payment size</li>
+</ol>
+<p>The top 10 specialties in terms of total payments are</p>
+<pre><code>                                                              Physician_Specialty
+1                                             Other Service Providers/ Specialist
+2                        Allopathic &amp; Osteopathic Physicians/ Orthopaedic Surgery
+3                          Allopathic &amp; Osteopathic Physicians/ Internal Medicine
+4       Allopathic &amp; Osteopathic Physicians/ Orthopaedic Surgery/ Sports Medicine
+5         Allopathic &amp; Osteopathic Physicians/ Psychiatry &amp; Neurology/ Psychiatry
+6            Allopathic &amp; Osteopathic Physicians/ Surgery/ Surgical Critical Care
+7          Allopathic &amp; Osteopathic Physicians/ Psychiatry &amp; Neurology/ Neurology
+8  Allopathic &amp; Osteopathic Physicians/ Internal Medicine/ Cardiovascular Disease
+9                              Allopathic &amp; Osteopathic Physicians/ Ophthalmology
+10                      Allopathic &amp; Osteopathic Physicians/ Neurological Surgery
+     total     n n.phys avg.payment avg.payment.phys
+1  4227173 10139   1734   416.92207         2437.816
+2  3900652  3774    918  1033.55912         4249.076
+3  2922462 34928   5114    83.67104          571.463
+4  2735405   419    115  6528.41368        23786.133
+5  2609271 17265   2126   151.13066         1227.315
+6  2306879    54     19 42719.98685       121414.699
+7  2059066  6920    708   297.55287         2908.285
+8  1849033 12139   1503   152.32172         1230.228
+9  1615157  8336   1355   193.75685         1191.998
+10 1311322  1951    425   672.12822         3085.464</code></pre>
+<p>These results are quite interesting. Notice how the Internal Medicine and the Orthopaedic Surgery/Sports Medicine specialty have almost identical total payments ($2.9M and $2.7M), but the allocation of the total is very different: In Internal Medicine the total is spread out across 5114 physicians in 34,928 payments with an average payment per physician of $571. In Orthopaedic Surgery/Sports Medicine the total is spread out across only 115 physicians in 419 payments with an average payment per physician of $23,786.</p>
+<p>We often do group summaries where the final output is a visualization. We can easily combine dplyr statements with ggplot2 statements:</p>
+<pre class="r"><code>library(ggplot2)
+
+spec.amount %&gt;%
+    slice(1:10) %&gt;%
+    arrange(total) %&gt;%
+    mutate(Physician_Specialty=gsub(&quot;Allopathic &amp; Osteopathic Physicians/ &quot;, &quot;&quot;,Physician_Specialty),
+           Physician_Specialty=factor(Physician_Specialty,levels=as.character(Physician_Specialty))) %&gt;%
+    ggplot(aes(x=Physician_Specialty,y=total)) + 
+          geom_bar(stat=&#39;identity&#39;) + 
+          coord_flip()+
+          ylab(&#39;Total Payments&#39;)+xlab(&#39;Specialty&#39;)</code></pre>
+<div class="figure">
+<img src="/static/analytics_R/group_summaries_1.png" alt="" />
+
+</div>
+<p>Here we take the result from the previous summary, take out the first 10 rows (using the <strong>slice</strong> statement) and then remove part of the string specifying specialty (to make for a easier to read graph). The rest of the statements will generate the plot (read the <a href="visualization.html">visualization</a> section for details).</p>
+<p>Suppose you wanted to know what the nature of payments were for each specialty. How should we do this? In this case we can group the data by both specialty <em>and</em> payment nature:</p>
+<pre class="r"><code>spec.nature.amount &lt;- oppr.ca %&gt;%
+  group_by(Physician_Specialty,Nature_of_Payment_or_Transfer_of_Value) %&gt;%
+  summarize(total=sum(Total_Amount_of_Payment_USDollars),
+            avg.payment = mean(Total_Amount_of_Payment_USDollars),
+            n=n(),
+            n.phys=n_distinct(Physician_Profile_ID)) %&gt;%
+  mutate(avg.payment.phys = total/n.phys) %&gt;%
+  arrange(desc(avg.payment.phys))</code></pre>
+<p>In this case the result is sorted on average physician payment within physician specialty. Here is the result for Anesthesiologists:</p>
+<pre class="r"><code>spec.nature.amount %&gt;% filter(Physician_Specialty==&#39;Allopathic &amp; Osteopathic Physicians/ Anesthesiology&#39;)</code></pre>
+<pre><code>##       total avg.payment    n n.phys avg.payment.phys
+## 1 248752.88  2487.52880  100     33       7537.96606
+## 2  54325.00  2469.31818   22      8       6790.62500
+## 3  15572.02  1038.13467   15      4       3893.00500
+## 4  52305.82  1025.60431   51     19       2752.93789
+## 5  36976.11  1056.46029   35     16       2311.00688
+## 6  41888.99   410.67637  102     29       1444.44793
+## 7    485.16   485.16000    1      1        485.16000
+## 8  51217.84    38.22227 1340    602         85.07947
+## 9   6927.01    54.97627  126     96         72.15635</code></pre>
+<p>where the payment codes are</p>
+<pre><code>## [1] &quot;Consulting Fee&quot;                                                                                                                                    
+## [2] &quot;Compensation for serving as faculty or as a speaker for a non-accredited and noncertified continuing education program&quot;                            
+## [3] &quot;Gift&quot;                                                                                                                                              
+## [4] &quot;Compensation for services other than consulting, including serving as faculty or as a speaker at a venue other than a continuing education program&quot;
+## [5] &quot;Honoraria&quot;                                                                                                                                         
+## [6] &quot;Travel and Lodging&quot;                                                                                                                                
+## [7] &quot;Royalty or License&quot;                                                                                                                                
+## [8] &quot;Food and Beverage&quot;                                                                                                                                 
+## [9] &quot;Education&quot;</code></pre>
+<p>For physicians specializing in Internal Medicine we get</p>
+<pre class="r"><code>spec.nature.amount %&gt;% filter(Physician_Specialty==&#39;Allopathic &amp; Osteopathic Physicians/ Internal Medicine&#39;)</code></pre>
+<pre><code>##        total  avg.payment     n n.phys avg.payment.phys
+## 1  167992.00 167992.00000     1      1     167992.00000
+## 2   51000.00  25500.00000     2      2      25500.00000
+## 3  131892.86   2536.40115    52     24       5495.53583
+## 4  623899.03    998.23845   625    137       4554.00752
+## 5  843201.61   1663.11955   507    330       2555.15639
+## 6  206882.27    323.25355   640    177       1168.82638
+## 7   71939.19    705.28618   102     64       1124.04984
+## 8    1500.00    500.00000     3      3        500.00000
+## 9    1548.19    309.63800     5      4        387.04750
+## 10 783207.69     25.13665 31158   4823        162.39015
+## 11    200.25     50.06250     4      4         50.06250
+## 12  39198.91     21.43188  1829    912         42.98126</code></pre>
+<pre><code>##  [1] &quot;Current or prospective ownership or investment interest&quot;                                                                                           
+##  [2] &quot;Grant&quot;                                                                                                                                             
+##  [3] &quot;Compensation for serving as faculty or as a speaker for a non-accredited and noncertified continuing education program&quot;                            
+##  [4] &quot;Compensation for services other than consulting, including serving as faculty or as a speaker at a venue other than a continuing education program&quot;
+##  [5] &quot;Consulting Fee&quot;                                                                                                                                    
+##  [6] &quot;Travel and Lodging&quot;                                                                                                                                
+##  [7] &quot;Honoraria&quot;                                                                                                                                         
+##  [8] &quot;Charitable Contribution&quot;                                                                                                                           
+##  [9] &quot;Gift&quot;                                                                                                                                              
+## [10] &quot;Food and Beverage&quot;                                                                                                                                 
+## [11] &quot;Entertainment&quot;                                                                                                                                     
+## [12] &quot;Education&quot;</code></pre>
+</div>
+<div id="exercise-open-payments1" class="section level4">
+<h4>Exercise Open Payments1</h4>
+<ul>
+<li><p>What are top 5 manufacturers in terms of payments? (you can use the variable <em>Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name</em> to id manufacturers)</p></li>
+<li><p>What is the structure of payments for these 5 manufacturers? (how many payments, total sum, what type of payments?)</p></li>
+</ul>
+</div>
+</div>
+<div id="example-new-york-bike-share" class="section level3">
+<h3>Example: New York Bike Share</h3>
+<p><img src={% static "analytics_R/station.png" %} align="right" alt="WWW" width="300" height="300" hspace="20"></p>
+<ul>
+<li>Citi bikes: Public bikes in New York City</li>
+<li>Data contains all rides in August 2015.</li>
+<li>Start and end time, start and end location, user type</li>
+<li>Birth year and gender for subscribers</li>
+<li>419 stations</li>
+<li>1,179,044 total rides</li>
+<li>7831 bikes</li>
+</ul>
+<p>In the following we will visualize various aspects of this data. Let’s start by loading the data and taking a peek at it:</p>
+<pre class="r"><code>citibike &lt;- readRDS(&#39;data/201508.rds&#39;)
+glimpse(citibike[1,])</code></pre>
+<pre><code>## Observations: 1
+## Variables: 17
+## $ tripduration            (int) 1202
+## $ start.time              (chr) &quot;8/1/2015 00:00:04&quot;
+## $ stop.time               (chr) &quot;8/1/2015 00:20:07&quot;
+## $ start.station.id        (int) 168
+## $ start.station.name      (chr) &quot;W 18 St &amp; 6 Ave&quot;
+## $ start.station.latitude  (dbl) 40.73971
+## $ start.station.longitude (dbl) -73.99456
+## $ end.station.id          (int) 385
+## $ end.station.name        (chr) &quot;E 55 St &amp; 2 Ave&quot;
+## $ end.station.latitude    (dbl) 40.75797
+## $ end.station.longitude   (dbl) -73.96603
+## $ bikeid                  (int) 23253
+## $ usertype                (chr) &quot;Subscriber&quot;
+## $ birth.year              (int) 1987
+## $ gender                  (chr) &quot;male&quot;
+## $ start.hour              (int) 0
+## $ weekday                 (fctr) Sat</code></pre>
+<p>The first trip was 1202 seconds long and started just after midnight on August 1, 2015. This was a trip made with bike number 23253, which was checked out at station 168 (located at W 18 St &amp; 6 Ave). The trip ended at station 385 (E 55 St &amp; 2 Ave). This trip was made by a male system subscriber born in 1987.</p>
+<p>Let’s start by counting the number trips made for each bike in the system. We will order the result in descinding fashion:</p>
+<pre class="r"><code>bike.trip.count.s &lt;- citibike %&gt;%
+  count(bikeid) %&gt;%
+  arrange(desc(n))</code></pre>
+<p>The <em>count</em> command simply counts the number of rows for each instance of the bikeid variable (and creates a variable called <strong>n</strong>). We then sort the result. The top 10 most popular bikes were</p>
+<pre class="r"><code>bike.trip.count.s %&gt;%
+  slice(1:10)</code></pre>
+<pre><code>## Source: local data frame [10 x 2]
+## 
+##    bikeid     n
+##     (int) (int)
+## 1   22251   475
+## 2   22301   475
+## 3   24066   474
+## 4   22125   472
+## 5   22300   472
+## 6   22319   471
+## 7   24021   465
+## 8   22306   464
+## 9   22515   463
+## 10  22502   461</code></pre>
+<p>Note that if you want the results variable to be called something different than <strong>n</strong> you need to use the group_by approach:</p>
+<pre class="r"><code>bike.trip.count.s &lt;- citibike %&gt;%
+  group_by(bikeid) %&gt;%
+  summarize(n.trips = n()) %&gt;%
+  arrange(desc(n.trips))</code></pre>
+<div id="exercise-bike1" class="section level4">
+<h4>Exercise Bike1</h4>
+<ul>
+<li>Count the number of trips originating from each bike station</li>
+<li>What are the 5 busiest bike stations?</li>
+</ul>
+<p>Now let’s look at trip durations. The average trip duration (in minutes) across all trips is</p>
+<pre class="r"><code>mean(citibike$tripduration)/60</code></pre>
+<pre><code>## [1] 16.95798</code></pre>
+<p>Ok - just about 17 minutes. How long can trips be? The 10 longest trips were</p>
+<pre class="r"><code>citibike %&gt;%
+  arrange(desc(tripduration)) %&gt;%
+  slice(1:10) %&gt;%
+  select(tripduration) %&gt;%
+  mutate(hours=tripduration/3600)</code></pre>
+<pre><code>## Source: local data frame [10 x 2]
+## 
+##    tripduration    hours
+##           (int)    (dbl)
+## 1       2842280 789.5222
+## 2       2712082 753.3561
+## 3       2555456 709.8489
+## 4       2453796 681.6100
+## 5       2133856 592.7378
+## 6       2041702 567.1394
+## 7       1795721 498.8114
+## 8       1774865 493.0181
+## 9       1745724 484.9233
+## 10      1622701 450.7503</code></pre>
+<p>Those are some long bike trips! It is not clear exactly what sort of trips these are, but clearly they are outliers and does not represent typical behavior. Let’s see how many trips are longer than 12 hours:</p>
+<pre class="r"><code>sum(citibike$tripduration &gt; 12*3600)    </code></pre>
+<pre><code>## [1] 610</code></pre>
+<pre class="r"><code>sum(citibike$tripduration &gt; 12*3600)/nrow(citibike)    </code></pre>
+<pre><code>## [1] 0.0005173683</code></pre>
+<p>There are only 610 trips longer than 12 hours - representing only 0.05% of the total number of trips. If we abstract from these outliers, the average trip is</p>
+<pre class="r"><code>citibike %&gt;% 
+  filter(tripduration &lt; 12*3600) %&gt;%
+  summarize(mean.trip = mean(tripduration)/60)</code></pre>
+<pre><code>## Source: local data frame [1 x 1]
+## 
+##   mean.trip
+##       (dbl)
+## 1   15.6424</code></pre>
+<p>So the average trip is 15.6 minutes. You can get some other quick summary statistics for the data by using <em>summary</em>:</p>
+<pre class="r"><code>citibike %&gt;%
+  filter(tripduration &lt; 12*3600) %&gt;%
+  mutate(minutes=tripduration/60) %&gt;%
+  select(minutes) %&gt;%
+  summary()</code></pre>
+<pre><code>##     minutes       
+##  Min.   :  1.000  
+##  1st Qu.:  6.917  
+##  Median : 11.333  
+##  Mean   : 15.642  
+##  3rd Qu.: 19.067  
+##  Max.   :719.683</code></pre>
+<p>The shortest trip is 1 minute while half of all trips are less than 11 minutes. There are still some large outliers in the data (notice how much larger the mean is compare to the median). To see where the outlier trips are, you can simply compute various percentiles of the data, e.g.,</p>
+<pre class="r"><code>quantile(citibike$tripduration/60, probs = c(0.5,0.9,0.95,0.975,0.99,0.995,1.0))</code></pre>
+<pre><code>##         50%         90%         95%       97.5%         99%       99.5% 
+##    11.33333    28.46667    36.03333    47.41667    80.90000   126.51667 
+##        100% 
+## 47371.33333</code></pre>
+<p>Ok - so 95% of all trips are less than 36 minutes, while 99% of all trips are less than 81 minutes. Only 0.5% of trips are longer than 126.5 minutes. This is all telling us the same story - there is a long right tail of outliers. Another way of saying this is that if we plot a histogram of trip durations, almost the data is gone by the time we reach 2 hours. Let’s check:</p>
+<pre class="r"><code>citibike %&gt;%
+  filter(tripduration &lt; 2*3600) %&gt;%
+  ggplot(aes(x=tripduration/60)) + geom_histogram(binwidth=0.5)</code></pre>
+<div class="figure">
+<img src={% static "analytics_R/group_summaries_2.png" %} alt="" />
+
+</div>
+<p>(Note: you can change the <em>binwidth</em> to change the smoothness of the histogram). The vast majority of trips are less than 30 minutes with very trips lasting more than 2 hours.</p>
+<p>Next, let’s look at user behavior throughout the day. For example, we can calculate number of trips and trip duration by hour of day:</p>
+<pre class="r"><code>hour.activity &lt;- citibike %&gt;%
+  filter(tripduration &lt; 12*3600) %&gt;%
+  group_by(start.hour) %&gt;%
+  summarise(n.trips=n(), 
+            mean.trip.time=mean(tripduration/60))</code></pre>
+</div>
+<div id="exercise-bike2" class="section level4">
+<h4>Exercise Bike2</h4>
+<ul>
+<li>Calculate number of trips and trip duration by day of week and user type</li>
+<li>For what hour of the day do subscribers take the longest/shortest trips?</li>
+</ul>
+</div>
+<div id="exercise-bike3" class="section level4">
+<h4>Exercise Bike3</h4>
+<ul>
+<li>Calculate average trip time by day of week for each gender.</li>
+<li>Do men and women exhibit similar behavior?</li>
+</ul>
+</div>
+</div>
+</div>
+
+{% endblock %}
+

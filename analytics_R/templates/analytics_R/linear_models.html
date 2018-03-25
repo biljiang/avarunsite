@@ -1,0 +1,494 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">线性回归</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+{% block main_txt_area %}
+
+
+<div id="header">
+<h1 class="title">Predictive Analytics: Linear Models</h1>
+</div>
+
+
+<hr />
+<p>Predictive models are used to predict outcomes of interest based on some known information. In order to come up with a good prediction rule, we can use historical data where the outcome is observed. This will allow us to calibrate the predictive model, i.e., to learn how specifically to link the known information to the outcome. For example, we might be interested in predicting the satisfaction of a user based on the user’s experience and interaction with a service: <span class="math display">\[
+S = f(X_1,X_2,X_3),
+\]</span> where <span class="math inline">\(S\)</span> is the satisfaction measure and <span class="math inline">\(X_1,X_2,X_3\)</span> are three measures of experience. For example, <span class="math inline">\(S\)</span> could be satisfaction of a visitor to a theme park, <span class="math inline">\(X_1\)</span> could be an indicator of whether the visit was on a weekend or not, <span class="math inline">\(X_2\)</span> could be indicator of whether the visitor was visiting with kids or not and we could let <span class="math inline">\(X_3\)</span> could capture all other factors that might drive satisfaction. Then we could use a predictive model of the form <span class="math display">\[
+S = \beta_{wk} Weekend + \beta_f Family + X_3,
+\]</span> where <span class="math inline">\(Weekend=1\)</span> for weekend visitors (otherwise zero), <span class="math inline">\(Family=1\)</span> for familily visitors (otherwise zero) and <span class="math inline">\(\beta_{wk},\beta_f\)</span> define the prediction rule. <span class="math inline">\(X_3\)</span> captures all other factors impacting satisfaction. We might not have a good idea about they are but we can let <span class="math inline">\(\beta_0\)</span> denote the mean of them. Then we can write the model as <span class="math display">\[
+S = \beta_0 + \beta_{wk} Weekend + \beta_f Family + \epsilon,
+\]</span> where <span class="math inline">\(\epsilon = X_3-\beta_0\)</span> must have mean zero. This is a predictive model since it can predict mean satisfaction given some known information. For example, predicted satisfaction for non-family weekend visitors is <span class="math inline">\(\beta_0 + \beta_{wk}\)</span>, while predicted mean satisfaction for family weekend visitors is <span class="math inline">\(\beta_0 + \beta_{wk} + \beta_f\)</span>. Of course, these prediction rules are not all that useful if we don’t know what the <span class="math inline">\(\beta\)</span>’s are. We will use historical data to calibrate the values of the <span class="math inline">\(\beta\)</span>’s so that they give us good prediction rules.</p>
+<p>The predictive model above is simple. However, we can add other factors to it, i.e., add things that might be part of <span class="math inline">\(X_3\)</span>. For example, we might suspect that the total number of visitors in the park would influence the visit experience. We could add that to the model as a continuous measure: <span class="math display">\[
+S = \beta_0 + \beta_{wk} Weekend + \beta_f Family + \beta_n N + \epsilon,
+\]</span> where <span class="math inline">\(N\)</span> is the number of visitors on the day that <span class="math inline">\(S\)</span> was recorded (for example on a survey). We can now make richer predictions. For example, what is the satisfaction of a family visitor on a non-weekend where the total park attendance is <span class="math inline">\(N=5,000\)</span>?</p>
+<p>Predictive models like these are referred to as “linear”, but that’s a bit of a misnomer. The model above implies that satisfaction is a linear function of attendance <span class="math inline">\(N\)</span>. However, we can change that by specifying an alternative model. Suppose we divide attendance into three categories, small, medium and large. Then we can use a model of the form: <span class="math display">\[
+S = \beta_0 + \beta_{wk} Weekend + \beta_f Family + \beta_{med} D_{Nmed} + \beta_{large} D_{Nlarge}  + \epsilon,
+\]</span> where <span class="math inline">\(D_{Nmed}\)</span> is an indicator for medium sized attendance days (equal to 1 on such days and zero otherwise) and <span class="math inline">\(D_{Nlarge}\)</span> the same for large attendance days. Now the relationship between attendance size and satisfaction is no longer restricted to be linear. If desired you can easily add more categories of attendance to get finer resolution.</p>
+<div id="exercise" class="section level4">
+<h4>Exercise</h4>
+<p>Using the last model above, what would the predicted mean satisfaction be for family visitors on small weekend days? How about on large weekend days?</p>
+</div>
+<div id="case-study-pricing-a-tractor" class="section level3">
+<h3>Case Study: Pricing a Tractor</h3>
+<p><img src="pics/track_tractor.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> Let’s use predictive analytics to develop a “blue book” for tractors: Given a set of tractor characteristics, what would we expect the market’s valuation to be?</p>
+<p>The dataset <strong>auction_tractor.rds</strong> contains information on 12,815 auction sales of a specific model of tractor. These auctions occurred in many states across the US in the years 1989-2012. We will develop a model to predict auction prices for tractors in the 12 month period from May 2011 to April 2012 using the historical data from 1989 to April 2011. We can use the 12 months of “hold-out” data data to evaluate the success of the model in predicting future prices.</p>
+<p>Let’s start by loading the data and finding out what information is in it:</p>
+<pre class="r"><code>## get libraries 
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+## read data, calculate age of each tractor and create factors 
+auction.tractor &lt;- readRDS(&#39;data/auction_tractor.rds&#39;) %&gt;%
+  mutate(MachineAge = saleyear - YearMade,  
+         saleyear=factor(saleyear),
+         salemonth=factor(salemonth,levels=month.abb))
+
+names(auction.tractor)</code></pre>
+<pre><code>##  [1] &quot;SalesID&quot;                  &quot;SalePrice&quot;               
+##  [3] &quot;MachineID&quot;                &quot;ModelID&quot;                 
+##  [5] &quot;datasource&quot;               &quot;auctioneerID&quot;            
+##  [7] &quot;YearMade&quot;                 &quot;MachineHoursCurrentMeter&quot;
+##  [9] &quot;UsageBand&quot;                &quot;saledate&quot;                
+## [11] &quot;fiModelDesc&quot;              &quot;fiBaseModel&quot;             
+## [13] &quot;fiSecondaryDesc&quot;          &quot;fiModelSeries&quot;           
+## [15] &quot;fiModelDescriptor&quot;        &quot;ProductSize&quot;             
+## [17] &quot;fiProductClassDesc&quot;       &quot;state&quot;                   
+## [19] &quot;ProductGroup&quot;             &quot;ProductGroupDesc&quot;        
+## [21] &quot;Drive_System&quot;             &quot;Enclosure&quot;               
+## [23] &quot;Forks&quot;                    &quot;Pad_Type&quot;                
+## [25] &quot;Ride_Control&quot;             &quot;Stick&quot;                   
+## [27] &quot;Transmission&quot;             &quot;Turbocharged&quot;            
+## [29] &quot;Blade_Extension&quot;          &quot;Blade_Width&quot;             
+## [31] &quot;Enclosure_Type&quot;           &quot;Engine_Horsepower&quot;       
+## [33] &quot;Hydraulics&quot;               &quot;Pushblock&quot;               
+## [35] &quot;Ripper&quot;                   &quot;Scarifier&quot;               
+## [37] &quot;Tip_Control&quot;              &quot;Tire_Size&quot;               
+## [39] &quot;Coupler&quot;                  &quot;Coupler_System&quot;          
+## [41] &quot;Grouser_Tracks&quot;           &quot;Hydraulics_Flow&quot;         
+## [43] &quot;Track_Type&quot;               &quot;Undercarriage_Pad_Width&quot; 
+## [45] &quot;Stick_Length&quot;             &quot;Thumb&quot;                   
+## [47] &quot;Pattern_Changer&quot;          &quot;Grouser_Type&quot;            
+## [49] &quot;Backhoe_Mounting&quot;         &quot;Blade_Type&quot;              
+## [51] &quot;Travel_Controls&quot;          &quot;Differential_Type&quot;       
+## [53] &quot;Steering_Controls&quot;        &quot;saleyear&quot;                
+## [55] &quot;salemonth&quot;                &quot;MachineAge&quot;</code></pre>
+<p>The key variable is “SalePrice” - the price determined at auction for a given tractor. There is information about the time and location of the auction and a list of tractor characteristics.</p>
+<div id="summarizing-the-data" class="section level4">
+<h4>Summarizing the data</h4>
+<p>Before you start fitting predictive models, it is usually a good idea to summarize the data to get a basic understanding of what is going on. Let’s start by filtering out the historical data and plotting the observed distribution of prices:</p>
+<pre class="r"><code>## historic data 
+auction.tractor.fit &lt;- auction.tractor %&gt;%
+  filter(!saleyear==&#39;2012&#39;, !(saleyear==&#39;2011&#39; &amp; !salemonth %in% c(&#39;Jan&#39;,&#39;Feb&#39;,&#39;Mar&#39;,&#39;Apr&#39;)))
+
+## prediction data
+auction.tractor.holdout &lt;- auction.tractor %&gt;%
+  filter(saleyear %in% c(&#39;2011&#39;,&#39;2012&#39;), !(saleyear==&#39;2011&#39; &amp; salemonth %in% c(&#39;Jan&#39;,&#39;Feb&#39;,&#39;Mar&#39;,&#39;Apr&#39;)))
+
+## distribution of prices
+auction.tractor.fit %&gt;%
+  ggplot(aes(x=SalePrice/1000)) + geom_histogram(binwidth=10)  + xlab(&quot;Sale Price (in $1,000)&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+
+</div>
+<p>There is a quite a bit of variation in the observed prices with most prices being in the $25K to $75K range. Did prices change over the time period? Let’s check:</p>
+<pre class="r"><code>## average auction price by year of sale
+auction.tractor.fit %&gt;%
+  group_by(saleyear) %&gt;%
+  summarize(&#39;Average Sale Price ($)&#39; = mean(SalePrice),
+            &#39;Number of Sales&#39; =n()) %&gt;%
+  gather(measure,value,-saleyear) %&gt;%
+  ggplot(aes(x=saleyear,y=value,group=measure,color=measure)) + 
+  geom_point(size=3) + 
+  geom_line(linetype=&#39;dotted&#39;) + 
+  facet_wrap(~measure,scales=&#39;free&#39;)+
+  xlab(&#39;Year of Sale&#39;)+ylab(&#39; &#39;)+
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+
+</div>
+<p>The average price increased by about $20K over the time period. Like cars, tractors depreciate with age. Let’s see how this is reflected in the price at auction:</p>
+<pre class="r"><code>auction.tractor.fit %&gt;%
+  filter(MachineAge &gt;= 0) %&gt;%
+  mutate(MachineAgeCat = cut(MachineAge,
+                    breaks=c(0,2,4,6,10,15,100),
+                    include.lowest=T,
+                    labels = c(&#39;&lt;= 2&#39;,&#39;3-4&#39;,&#39;5-6&#39;,&#39;7-10&#39;,&#39;11-15&#39;,&#39;&gt;15&#39;))) %&gt;%
+  group_by(saleyear,MachineAgeCat) %&gt;%
+  summarize(mp = mean(SalePrice)/1000,
+            &#39;Number of Sales&#39; =n()) %&gt;%
+  ggplot(aes(x=MachineAgeCat,y=mp,group=saleyear,color=factor(saleyear))) + 
+  geom_point(size=2) + 
+  geom_line() + 
+  xlab(&#39;Machine Age in Years&#39;)+ylab(&#39;Average Sale Price (in $1000)&#39;)+
+  facet_wrap(~saleyear,scales=&#39;free&#39;)+
+  theme(legend.position=&quot;none&quot;,
+        axis.text.x = element_text(angle = 45, hjust = 1,size=8))</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+
+</div>
+<p>The tractor model in the data has been sold as different sub-models (or “trim”) over time. Let’s see how prices vary across sub-models:</p>
+<pre class="r"><code>auction.tractor.fit %&gt;%
+  group_by(saleyear,fiSecondaryDesc) %&gt;%
+  summarize(mp = mean(SalePrice)/1000,
+            ns =n()) %&gt;%
+  ggplot(aes(x=saleyear,y=mp,group=fiSecondaryDesc,color=fiSecondaryDesc)) + 
+  geom_point(size=2) + 
+  geom_line() + 
+  xlab(&#39;Year of Sale&#39;)+ylab(&#39;Average Sale Price (in $1,000)&#39;)+
+  facet_wrap(~fiSecondaryDesc,scales=&#39;free&#39;)+
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-5-1.png" alt="" />
+
+</div>
+<p>Finally, let’s see how prices vary across states:</p>
+<pre class="r"><code>auction.tractor.fit %&gt;%
+  group_by(state) %&gt;%
+  summarize(mean.price = mean(SalePrice)/1000) %&gt;%
+  ggplot(aes(x=reorder(state,mean.price),y=mean.price)) + 
+  geom_bar(stat=&#39;identity&#39;) + 
+  ylab(&#39;Average Sale Price (in $1,000)&#39;)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab(&#39;State&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-6-1.png" alt="" />
+
+</div>
+<p>What to take away from these summaries? Well, clearly we can conclude that any predictive model that we might consider should at a minimum account for year, state, sub-model and machine age effects.</p>
+</div>
+<div id="predictive-models" class="section level4">
+<h4>Predictive Models</h4>
+<p>We start by defining the data used for developing the model. Since we will want to have state effects in the model, let’s elminate states with too few sales and also convert year and month of sale into factors:</p>
+<pre class="r"><code>incl.states &lt;-  auction.tractor.fit %&gt;%
+  count(state) %&gt;%
+  filter(n &gt; 10, !state==&#39;Unspecified&#39;)
+
+auction.tractor.fit.state &lt;- auction.tractor.fit %&gt;%
+  filter(state %in% incl.states$state)</code></pre>
+<p>This reduces the sample only by 121 observations. These all come for states with very few auctions.</p>
+<p>Let’s start with a model that is clearly too simple: A model that predicts prices using only the year of sale. We already know from the above plots that we can do better, but this is just to get started. You specify a linear model in R using the <strong>lm</strong> command:</p>
+<pre class="r"><code>## linear model using only year to predict prices
+lm.year &lt;- lm(log(SalePrice)~saleyear,
+              data=auction.tractor.fit.state)
+
+## look at model estimates 
+sum.lm.year &lt;- summary(lm.year)</code></pre>
+<p>This is a linear model where we are predicting the (natural) log of sale price using the factor <em>saleyear</em>. When predicting things like prices (or sales), it is usually better to predict the log of price (or sales). The object <em>sum.lm.year</em> contains the calibrated (or estimated) coefficients for your model (along with other information):</p>
+<pre><code>## 
+## Call:
+## lm(formula = log(SalePrice) ~ saleyear, data = auction.tractor.fit.state)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.88801 -0.39954  0.05655  0.46036  1.28129 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  10.379310   0.038490 269.661  &lt; 2e-16 ***
+## saleyear1990  0.095267   0.055808   1.707 0.087843 .  
+## saleyear1991  0.147834   0.052929   2.793 0.005230 ** 
+## saleyear1992 -0.024217   0.050781  -0.477 0.633447    
+## saleyear1993  0.006535   0.051496   0.127 0.899016    
+## saleyear1994  0.050021   0.052929   0.945 0.344652    
+## saleyear1995  0.196387   0.052302   3.755 0.000174 ***
+## saleyear1996  0.188945   0.053119   3.557 0.000377 ***
+## saleyear1997  0.301433   0.051968   5.800 6.79e-09 ***
+## saleyear1998  0.339995   0.047840   7.107 1.26e-12 ***
+## saleyear1999  0.398981   0.049705   8.027 1.09e-15 ***
+## saleyear2000  0.332623   0.044198   7.526 5.63e-14 ***
+## saleyear2001  0.228936   0.044406   5.156 2.57e-07 ***
+## saleyear2002  0.248626   0.046290   5.371 7.98e-08 ***
+## saleyear2003  0.155599   0.046978   3.312 0.000929 ***
+## saleyear2004  0.319510   0.044647   7.156 8.78e-13 ***
+## saleyear2005  0.411895   0.045603   9.032  &lt; 2e-16 ***
+## saleyear2006  0.503946   0.045293  11.126  &lt; 2e-16 ***
+## saleyear2007  0.495893   0.044078  11.250  &lt; 2e-16 ***
+## saleyear2008  0.482767   0.043121  11.196  &lt; 2e-16 ***
+## saleyear2009  0.439535   0.042459  10.352  &lt; 2e-16 ***
+## saleyear2010  0.382052   0.043521   8.779  &lt; 2e-16 ***
+## saleyear2011  0.540418   0.048972  11.035  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.5925 on 11582 degrees of freedom
+## Multiple R-squared:  0.06313,    Adjusted R-squared:  0.06135 
+## F-statistic: 35.47 on 22 and 11582 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Notice that while we have data from 1989 to 2011, there is no effect for 1989 - the model dropped this automatically. Think of the intercept as the base level for the dropped year - the average log price in 1989. The predicted average log price in 1990 is then 0.095 higher. Why? Like in the satisfaction example above, you should think of each effect as being multiplied by a one or a zero depending on if the year correspond to the effect in question (here 1990). This corresponds to an increase in price of about 10%. Similarly, the predicted average log price in 1991 would be 10.379+0.148.</p>
+<p>In order to plot the estimated year effects it is convenient to put them in a R data frame. We can also attach measures of uncertainty of the estimates (confidence intervals) at the same time:</p>
+<pre class="r"><code>## put results in a data.frame 
+results.df &lt;- data.frame(sum.lm.year$coefficients,confint(lm.year)) %&gt;%
+  add_rownames()</code></pre>
+<p>We can now plot elements of this data frame to illustrate effects. We can use a simple function to extract which set of effects to plot. Here there is only <strong>saleyear</strong> to consider:</p>
+<pre class="r"><code>## ------------------------------------------------------
+## Function to extract coefficients for plots 
+## ------------------------------------------------------
+extract.coef &lt;- function(res.df,var){
+res.df %&gt;%
+  filter(grepl(var,rowname)) %&gt;%
+  separate(rowname,into=c(&#39;var&#39;,&#39;level&#39;),sep=nchar(var))
+}
+##-------------------------------------------------------
+
+
+## plot estimated trend
+extract.coef(results.df,&quot;saleyear&quot;) %&gt;%
+  ggplot(aes(x=level,y=Estimate,group=1)) + 
+  geom_point() + 
+  geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-11-1.png" alt="" />
+
+</div>
+<p>This plot closely resembles the plot above of average prices per year. This is not strange since our “model” basically just calculates the average log price per year.</p>
+<p>If you want to add confidence intervals to the plot, you can use the <strong>geom_pointrange</strong> option:</p>
+<pre class="r"><code>extract.coef(results.df,&quot;saleyear&quot;) %&gt;%
+  ggplot(aes(x=level,y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) + 
+  geom_pointrange() + 
+  geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+
+</div>
+<p>This model would be just fine if the main driver of variation in sale prices was a time trend. This is clearly false. One indication is to look at the with-in sample fit. For example, in the output above it says “Multiple R-squared: 0.064”. This means that the annual time trend only explains 6.4% of the overall variation in log prices. That is not a good predictive model. We can also evaluate the out-of-sample fit. Let’s grab the holdout data and then assume that the effect in 2011 carries over to 2012. So we are assuming that prices in 2012 are what they were in 2011:</p>
+<pre class="r"><code>## holdout data
+auction.tractor.holdout &lt;- auction.tractor.holdout %&gt;%
+  filter(state %in% incl.states$state)
+
+## treat 2012 as 2011
+auction.tractor.holdout$saleyear=&#39;2011&#39;</code></pre>
+<p>Now we can have R calculate predictions for the prediction period using the model and then compare to what the prices actually were:</p>
+<pre class="r"><code>pred.df &lt;- data.frame(log.sales=log(auction.tractor.holdout$SalePrice),
+                      log.sales.pred=predict(lm.year,newdata=auction.tractor.holdout))
+
+pred.df %&gt;%  
+  ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_point(size=2)  + xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+
+</div>
+<p>Yikes….not a good set of predictions: Actual log prices vary from 9 to over 11.5 and we are predicting them to be all the same. We need to improve this.</p>
+<p>Let’s consider a model that takes into account that auctions occur throughout the year and across many states. We do this by including month and state effects:</p>
+<pre class="r"><code>lm.base &lt;- lm(log(SalePrice)~state+saleyear+salemonth,
+              data=auction.tractor.fit.state)
+
+sum.lm.base &lt;- summary(lm.base)
+
+results.df &lt;- data.frame(sum.lm.base$coefficients,confint(lm.base)) %&gt;%
+  add_rownames()</code></pre>
+<p>We wont show the estimated coefficients here (since there are too many of them), but this model explains 12% of the overall variation in log prices in the estimation sample. That’s better than before but we have also included more effects. How about in terms of predictions? Let’s check:</p>
+<pre class="r"><code>pred.df &lt;- data.frame(log.sales=log(auction.tractor.holdout$SalePrice),
+                      log.sales.pred=predict(lm.base,newdata=auction.tractor.holdout))
+
+pred.df %&gt;%  
+  ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_point(size=2)  + geom_line(aes(x=log.sales,y=log.sales))+
+  xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+
+</div>
+<p>Here we have added a 45 degree line to the plot. Our predictions are slightly better than before but still not great. Let’s add information about the sub-model of each tractor:</p>
+<pre class="r"><code>lm.trim &lt;- lm(log(SalePrice)~state+saleyear+salemonth + fiSecondaryDesc,
+              data=auction.tractor.fit.state)
+
+## get results
+sum.lm.trim &lt;- summary(lm.trim)
+results.trim.df &lt;- data.frame(sum.lm.trim$coefficients,confint(lm.trim)) %&gt;%
+  add_rownames()</code></pre>
+<p>With this model we are explaining 79.4% of the overall variation in log prices. Let’s plot the predictions with information about each model type:</p>
+<pre class="r"><code>pred.df &lt;- data.frame(log.sales=log(auction.tractor.holdout$SalePrice),
+                      log.sales.pred=predict(lm.trim,newdata=auction.tractor.holdout),
+                      trim = auction.tractor.holdout$fiSecondaryDesc)
+
+pred.df %&gt;%  
+  ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_text(aes(color=trim,label=trim),size=2) + 
+  geom_line(aes(x=log.sales,y=log.sales)) + 
+  xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12) + 
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-18-1.png" alt="" />
+
+</div>
+<p>Ok - we are getting close to something useful. But we saw from the plots above that the age of the tractor was important in explaining prices so let’s add that to the model as a factor:</p>
+<pre class="r"><code>auction.tractor.fit.state &lt;- auction.tractor.fit.state %&gt;%
+  filter(MachineAge &gt;= 0) %&gt;%
+  mutate(MachineAgeCat = cut(MachineAge,
+                             breaks=c(0,2,4,6,10,15,100),
+                             include.lowest=T,
+                             labels = c(&#39;&lt;= 2&#39;,&#39;3-4&#39;,&#39;5-6&#39;,&#39;7-10&#39;,&#39;11-15&#39;,&#39;&gt;15&#39;)))
+
+lm.trim.age &lt;- lm(log(SalePrice)~state+saleyear+salemonth + fiSecondaryDesc+MachineAgeCat,
+                  data=auction.tractor.fit.state)
+
+
+sum.lm.trim.age &lt;- summary(lm.trim.age)
+results.trim.age.df &lt;- data.frame(sum.lm.trim.age$coefficients,confint(lm.trim.age)) %&gt;%
+  add_rownames()</code></pre>
+<p>Now we are explaining 85.8% of the overall variation in log prices. Let’s take a closer look at the estimated age effects:</p>
+<pre class="r"><code>extract.coef(results.trim.age.df,&quot;MachineAgeCat&quot;) %&gt;%
+  mutate(level = factor(level,levels=levels(auction.tractor.fit.state$MachineAgeCat))) %&gt;%
+  ggplot(aes(x=level,y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) +
+  geom_pointrange() + geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab(&#39;Machine Age&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-20-1.png" alt="" />
+
+</div>
+<p>We can think of this as an age-depreciation curve. Compared to two year old (or less) tractors, 3 to 4 year old tractors are on average word 0.181 less on the log-price scale. This corresponds to exp(0.181)-1 = 19.8% percent. 11 to 15 year old tractors are worth exp(0.757)-1=113% less than two year old or younger tractors.</p>
+<p>We can also look at where tractors are cheapest by looking at the state effects:</p>
+<pre class="r"><code>extract.coef(results.trim.age.df,&quot;state&quot;) %&gt;%
+  ggplot(aes(x=reorder(level,Estimate),y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) + 
+  geom_pointrange() + 
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab(&#39;State&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-21-1.png" alt="" />
+
+</div>
+<p>Tractors are cheapest in Michigan, Idahor and New Jersey and most expensive Oklahoma, Arizona and Nevada. Notice that we could not make these kinds of statements based on the raw data above since then we are confounding location with the type of tractor being sold at that location.</p>
+<p>Finally, here are the predictions for the predictive model with age included:</p>
+<pre class="r"><code>auction.tractor.holdout &lt;- auction.tractor.holdout %&gt;%
+  filter(MachineAge &gt;= 0) %&gt;%
+  mutate(MachineAgeCat = cut(MachineAge,
+                             breaks=c(0,2,4,6,10,15,100),
+                             include.lowest=T,
+                             labels = c(&#39;&lt;= 2&#39;,&#39;3-4&#39;,&#39;5-6&#39;,&#39;7-10&#39;,&#39;11-15&#39;,&#39;&gt;15&#39;)))
+
+
+pred.df &lt;- data.frame(log.sales=log(auction.tractor.holdout$SalePrice),
+                      log.sales.pred=predict(lm.trim.age,newdata=auction.tractor.holdout),
+                      trim = auction.tractor.holdout$fiSecondaryDesc)
+
+pred.df %&gt;%  
+  ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_text(aes(color=trim,label=trim),size=2) + 
+  geom_line(aes(x=log.sales,y=log.sales)) + 
+  xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12) + 
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/pred.trim.age-1.png" alt="" />
+
+</div>
+<p>It is often useful to calculate summary measures of the predictions of the different models. Here we calculate two metrics: Mean Absolute Prediction Error and Root Mean Square Prediction Error. The smaller these are, the better is the predictive ability of the model. Both of these metrics are on the same scale as the outcome variable, log price.</p>
+<pre class="r"><code>pred.df &lt;- data.frame(log.sales=log(auction.tractor.holdout$SalePrice),
+                      Year = predict(lm.year,newdata=auction.tractor.holdout),
+                      Base = predict(lm.base,newdata=auction.tractor.holdout),
+                      Trim = predict(lm.trim,newdata=auction.tractor.holdout),
+                      Time_Age = predict(lm.trim.age,newdata=auction.tractor.holdout))
+
+
+pred.df %&gt;%
+  gather(model,pred,-log.sales) %&gt;%
+  group_by(model) %&gt;%
+  summarize(MAE = mean(abs(log.sales-pred)),
+            RMSE = sqrt(mean((log.sales-pred)**2))) %&gt;%
+  gather(metric,value,-model) %&gt;%
+  ggplot(aes(x=model,y=value,fill=model)) + geom_bar(stat=&#39;identity&#39;) + facet_wrap(~metric)+theme(legend.position=&quot;none&quot;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-22-1.png" alt="" />
+
+</div>
+<p>For both metrics we see that the model with both trim and age seems to do the best. It also had the best in-sample performance. Using this model we have an average absolute prediction error of about .2 on the log scale. Depending on the type of use of this predictive model this may and may not be an acceptable error.</p>
+</div>
+<div id="exercise-1" class="section level4">
+<h4>Exercise</h4>
+<p>We still haven’t used any of the specific tractor characteristics as additional predictive information. Try to add <strong>Enclosure</strong> (the type of “cabin” of the tractor), <strong>Travel_Controls</strong> (part of controlling the machine) and <strong>Ripper</strong> (the attachment that goes in the ground top cultivate the soil). You need to throw out data since there is limited information for some of the levels of these variables. You can verify this as follows:</p>
+<pre class="r"><code>table(auction.tractor.fit.state$Enclosure)</code></pre>
+<pre><code>## 
+##      EROPS   EROPS AC EROPS w AC      OROPS 
+##       1008          1       2955       7639</code></pre>
+<pre class="r"><code>table(auction.tractor.fit.state$Travel_Controls)</code></pre>
+<pre><code>## 
+##  Differential Steer          Finger Tip               Lever 
+##                2669                 936                  70 
+## None or Unspecified               Pedal 
+##                7919                   3</code></pre>
+<pre class="r"><code>table(auction.tractor.fit.state$Ripper)</code></pre>
+<pre><code>## 
+##         Multi Shank None or Unspecified        Single Shank 
+##                1049                9740                 808 
+##                 Yes 
+##                   1</code></pre>
+<p>You should drop the data for those levels with only very few auctions:</p>
+<pre class="r"><code>auction.tractor.fit.state.char &lt;- auction.tractor.fit.state %&gt;%
+  filter(!Ripper==&#39;Yes&#39;,!Travel_Controls==&#39;Pedal&#39;,!Enclosure==&#39;EROPS AC&#39;) </code></pre>
+<p>We lose only 5 observations by doing this. Now use this data to see whether you can improve the models above - both within and out of sample.</p>
+</div>
+</div>
+<div id="case-study-weather-patterns-and-bike-commuting" class="section level3">
+<h3>Case Study: Weather Patterns and Bike Commuting</h3>
+<p><img src="pics/bike_rain.jpg" align="right" alt="WWW" width="300" height="250" hspace="20"> Let’s see how weather impacts bike demand in New York City’s citibike system. The data file <strong>bike_demand.rds</strong> contains trip data for three months, June-August 2015, aggregated to the hourly level. Each row in the data is a month-day-hour record with the total number of trips occurring in that month-day-hour window. The data file also contains day-hour weather information for the smae three month period. These have been scraped of the web from the web-site <a href="http://www.wunderground.com">www.wunderground.com</a> (if you are interested in the details of how to do this in R, you can find the code in <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/getNYCweather.r">this</a> file).</p>
+<p>The weather data was merged with the bike trip data at the month-day-hour level. We can now investigate how sensitive bike demand is to weather. Here we will analyze the aggregate demand data. In an exercise you can try to see whether the results on the aggregate data is replicated on the two individual user segments present in the data. It is also possible to carry out the analysis by segmenting demand spatially, e.g., demand at individual bike stations.</p>
+<p>We start by loading the data and then setting up a model that has weekday and hour effects along with rain, temperature and humidity effects:</p>
+<pre class="r"><code>bike.demand &lt;- readRDS(&#39;data/bike_demand.rds&#39;)
+
+lm.bike &lt;- lm(log(n)~weekday+hour+RainCat+TempCat+HumidCat,data=bike.demand)
+
+bike.results &lt;- data.frame(summary(lm.bike)$coefficients,confint(lm.bike)) %&gt;%
+  add_rownames() </code></pre>
+<p>First, let’s look at effects of rain on bike demand:</p>
+<pre class="r"><code>extract.coef(bike.results,&quot;RainCat&quot;) %&gt;%
+  ggplot(aes(x=level,y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) +
+  geom_pointrange() + geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  xlab(&#39;Amount of Rain (Inches)&#39;)+
+  ggtitle(&#39;Rain Effects on Bike Demand&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-26-1.png" alt="" />
+
+</div>
+<p>The left level is 0.00, i.e., no precipitation. These are large effects. A small amount of rain, less than 0.05 inches, reduces demand by .58 on the log scale. This is equivalent to a exp(-0.58)-1=44% drop in number of trips! The effects are even more dramatic for large amounts of rain. Note that the effect is slightly smaller for the largest rain level compared to the medium sized levels. Why might that be?</p>
+<p>Here are the effects of temperature:</p>
+<pre class="r"><code>extract.coef(bike.results,&quot;TempCat&quot;) %&gt;%
+  ggplot(aes(x=level,y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) +
+  geom_pointrange() + geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab(&#39;Temperature (F)&#39;)+
+  ggtitle(&#39;Temperature Effects on Bike Demand&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-27-1.png" alt="" />
+
+</div>
+<p>This is an inverse U-shape: Compared to the coolest days, trip demand increases with warmer temperatures and then levels off. For the hottest days we see a slight decline in trip demand (although this is not very precisely estimated).</p>
+<p>Here are the effects of humidity:</p>
+<pre class="r"><code>extract.coef(bike.results,&quot;HumidCat&quot;) %&gt;%
+  ggplot(aes(x=level,y=Estimate,ymin=X2.5..,ymax=X97.5..,group=1)) +
+  geom_pointrange() + geom_line(linetype=&#39;dotted&#39;)+
+  geom_hline(aes(yintercept=0))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab(&#39;Percent Humidity&#39;)+
+  ggtitle(&#39;Humidity Effects on Bike Demand&#39;)</code></pre>
+<div class="figure">
+<img src="linear_models_files/figure-html/unnamed-chunk-28-1.png" alt="" />
+
+</div>
+<p>Increasing humidity reduces demand for bikes. Very high humidity strongly reduces demand.</p>
+<div id="exercise-2" class="section level4">
+<h4>Exercise</h4>
+<p>The data file <strong>bike_demand_usertype.rds</strong> is structured the same way as the file above, except there are twice as many rows - one month-day-hour record for each user type (“Customer” and “Subscriber”). Redo the analysis above for each segment - do you find the same effects?</p>
+</div>
+</div>
+
+{% endblock main_txt_area %}
+
+

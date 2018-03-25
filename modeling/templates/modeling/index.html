@@ -1,0 +1,31 @@
+{% extends "modeling/base_modeling.html" %}
+{% block extrastyle %}
+{% include "adminlte/lib/_styles.html" %}
+{% endblock extrastyle %}
+
+{% block content%}
+<div class="row">
+{% block sidebar %}
+<div class="col-md-2">
+{% include "modeling/_main_sidebar.html" %}
+</div>
+{% endblock sidebar %}
+<div class="col-md-8">
+{% block breadcrumbs %}
+<nav class="" aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item active" aria-current="page">分析工具-R</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+<h3 align="center">数据建模部分将用三种不同的数据处理方法应对三种不同的企业数据分析需求</a></h3>
+</div>
+</div>
+{% endblock %}
+{% block extra_jscode %}
+
+{% include "adminlte/lib/_scripts.html" %}
+{% endblock extra_jscode %}

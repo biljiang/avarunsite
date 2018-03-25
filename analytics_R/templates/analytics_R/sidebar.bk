@@ -1,0 +1,118 @@
+
+{% extends 'adminlte/lib/_main_sidebar.html' %}
+{% comment %}
+<nav id="navbar-example3" class="navbar navbar-light bg-light">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <nav class="nav nav-pills flex-column">
+    <a class="nav-link" href="#item-1">Item 1</a>
+    <nav class="nav nav-pills flex-column">
+      <a class="nav-link ml-3 my-1" href="#item-1-1">Item 1-1</a>
+      <a class="nav-link ml-3 my-1" href="#item-1-2">Item 1-2</a>
+    </nav>
+    <a class="nav-link" href="#item-2">Item2</a>
+    <a class="nav-link" href="#item-3">Item3</a>
+    <nav class="nav nav-pills flex-column">
+      <a class="nav-link ml-3 my-1" href="#item-3-1">Item 3-1</a>
+      <a class="nav-link ml-3 my-1" href="#item-3-2">Item 3-2</a>
+    </nav>
+  </nav>
+</nav>
+
+<style>
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 12px 16px;
+    z-index: 1;
+}
+
+.dropdown:active .dropdown-content {
+    display: block;
+}
+</style>
+
+{% endcomment %}
+
+<!-- Sidebar -->
+{% block nav-links %}
+<nav id="sidebar" class="navbar col-sm-2 navvar-light" style="background-color:rgba(0,0,0,0.1)" >
+
+      <nav class="nav w-100">
+        <a class="navbar-brand" href="/">AVARUN</a>
+      </nav>
+      <nav class="dropdown">
+        <span>Mouse over me</span>
+        <nav class="dropdown-content">
+        <p>Hello World!</p>
+        </nav>
+      </nav>
+     <nav class="nav w-100">
+      <details>
+        <summary class="nav-link">
+          数据输入
+        </summary>
+        <nav class="nav w-100">
+          <a class="nav-link" href={% url "analytics_R:data_management" %}>R 数据管理</a>
+          <a class="nav-link" href="#">R 数据库操作</a>
+        </nav>
+      </details>
+      </nav>
+      <nav class="nav">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropup" aria-haspopup="false" aria-expanded="false">
+          数据清理
+        </a>
+        <nav class="nav flex-column" aria-labelledby="navbarDropdown">
+          <a class="nav-link" href="#">数据转换</a>
+          <a class="nav-link" href="#">数据汇总</a>
+          <a class="nav-link" href="#">Tidy Data</a>
+        </nav>
+      </nav>
+      <nav class="nav-item dropdown"> 
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          数据可视化
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">使用“ggplot2" </a>
+          <a class="dropdown-item" href= "#">地图制作</a>
+          <a class="dropdown-item" href="/stocks_reactive">交互式可视化</a>
+        </div>
+      </nav> 
+      <nav class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          预测
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">线性回归 </a>
+          <a class="dropdown-item" href= "#">逻辑回归</a>
+        </div>
+      </nav>
+      <nav class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if '/stocksdemo/' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          聚类
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">k-means </a>
+          <a class="dropdown-item" href= "#">分类和数据降维</a>
+        </div>
+      </nav>
+      <nav class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          文本挖掘
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href= "#">文本数据 </a>
+          <a class="dropdown-item" href= "#">汇总语料库</a>
+          <a class="dropdown-item" href="/stocks_reactive">情感分析</a>
+        </div>
+      </nav>
+</nav>
+
+{% endblock %}

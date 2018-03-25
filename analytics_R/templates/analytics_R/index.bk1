@@ -1,0 +1,23 @@
+{% extends "site/base_avarun.html" %}
+{% block breadcrumbs %}
+<nav class="" aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item active" aria-current="page">分析工具-R</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+{% block content%}
+<div class="row">
+<div class="col-md-2">
+{% block sidebar %}
+{% include "analytics_R/sidebar.html" %}
+{% endblock sidebar %}
+</div>
+<div class="col-md-8">
+
+<h3>本站R分析工具学习的内容译自 Professor Karsten Hansen（Rady School of Managment,UCSD）的教学内容，原文请参考<a href="http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html">http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html</a></h3>
+</div>
+</div>
+{% endblock %}

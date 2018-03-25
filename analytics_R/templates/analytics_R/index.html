@@ -1,0 +1,64 @@
+{% extends "site/base_avarun.html" %}
+
+{% block extrastyle %}
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+    border:thin solid rgba(0,0,0,0.1);
+    padding:15px;
+  }
+</style>
+<style type="text/css">
+  code{white-space: pre;}
+  .r {background-color: rgba(0,0,0,0.06);
+      border:thin solid rgba(0,0,0,0.1);
+      padding:15px;
+     }
+  img {height:auto;}
+</style>
+
+<script defer src="/static/sitebase/fontawesome-free-5.0.8/svg-with-js/js/fontawesome-all.js"></script>
+{% endblock extrastyle %}
+
+{% block breadcrumbs %}
+<nav class="" aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item active" aria-current="page">分析工具-R</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+{% block content%}
+<div class="row">
+<div class="col-md-2 scrollable"{# style=“position:absolute;overflow-y:scroll;" #}>
+{% block sidebar %}
+{% include "analytics_R/sidebar.html" %}
+{% endblock sidebar %}
+</div>
+<div class="col-md-8"{# style=“position:absolute;overflow-y:scroll;"#}>
+{% block main_txt_area %}
+<h3>本站R分析工具学习的内容译自 Professor Karsten Hansen（Rady School of Managment,UCSD）的教学内容，原文请参考<a href="http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html">http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html</a></h3>
+{% endblock main_txt_area %}
+</div>
+</div>
+{% endblock content %}
+{% block extra_jscode %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    $('nav.collapse').on('hidden.bs.collapse', function () {
+      $("a[aria-expanded='false']")
+        .find('[data-fa-i2svg]')
+        .toggleClass('fa-angle-down');
+    });
+    $('nav.collapse').on('shown.bs.collapse', function () {
+      $("a[aria-expanded='true']")
+        .find('[data-fa-i2svg]')
+        .toggleClass('fa-angle-up');
+    });
+ });
+
+</script>
+{% endblock extra_jscode %}
+
+

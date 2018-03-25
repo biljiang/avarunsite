@@ -1,0 +1,86 @@
+{% extends "analytics_R/index.html" %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+  </ol>
+</nav>
+{% endblock breadcrumbs %}
+
+
+
+{% block main_txt_area %}
+
+<div id="header">
+<h1 class="title">Interactive Visualizations</h1>
+</div>
+
+
+<hr />
+<p>Cool interactive maps can be created using the <strong>leaflet</strong> package. It is pretty straightforward:</p>
+<pre class="r"><code>library(leaflet)
+library(dplyr)
+
+citibike &lt;- readRDS(&#39;data/201508.rds&#39;)
+  
+## summarize data to plot  
+station.info &lt;- citibike %&gt;%
+  group_by(start.station.id) %&gt;%
+  summarise(lat=as.numeric(start.station.latitude[1]),
+            long=as.numeric(start.station.longitude[1]),
+            name=start.station.name[1],
+            n.trips=n())
+
+
+## make plot with station locations 
+leaflet(station.info) %&gt;% 
+  addTiles() %&gt;%
+  addCircles(lng = ~long, lat = ~lat)</code></pre>
+<p><a href="map1.html"> <img src="pics/map1.png" align="center" alt="WWW" width="500" height="350" hspace="20"> </a></p>
+<p>When you plot this in Rstudio you can zoom in and out of the plot (too see what it looks like click on the map above). At a later module we will look at how to intergrate interactive maps into web-pages and html presentations.</p>
+<p>You often want to add information to the markers in the maps. Again easy:</p>
+<pre class="r"><code>station.info &lt;- citibike %&gt;%
+  group_by(start.station.id) %&gt;%
+  summarise(lat=as.numeric(start.station.latitude[1]),
+            long=as.numeric(start.station.longitude[1]),
+            n.trips=n(),
+            name=paste0(start.station.name[1],&#39;&lt;br/&gt;&#39;,&#39;Number of Trips: &#39;,n.trips))
+
+
+leaflet(station.info) %&gt;%                              
+  addTiles() %&gt;%
+  addCircles(lng = ~long, lat = ~lat, popup = ~name)</code></pre>
+<p><a href="map2.html"> <img src="pics/map2.png" align="center" alt="WWW" width="500" height="350" hspace="20"> </a></p>
+<p>You can add further information and use an html break where you want line breaks:</p>
+<pre class="r"><code>station.info &lt;- citibike %&gt;%
+  group_by(start.station.id) %&gt;%
+  summarise(lat=as.numeric(start.station.latitude[1]),
+            long=as.numeric(start.station.longitude[1]),
+            n.trips.subscriber=sum(usertype==&#39;Subscriber&#39;),
+            n.trips.customer=sum(usertype==&#39;Customer&#39;),
+            n.trips = n(),
+            name=paste0(start.station.name[1],&#39;&lt;br/&gt;&#39;,
+                        &#39;Number of Customer Trips: &#39;,n.trips.customer,&#39;&lt;br/&gt;&#39;,
+                        &#39;Number of Subscriber Trips: &#39;,n.trips.subscriber))
+
+leaflet(station.info) %&gt;% 
+  addTiles() %&gt;%
+  addCircles(lng = ~long, lat = ~lat, popup = ~name)</code></pre>
+<p><a href="map3.html"> <img src="pics/map3.png" align="center" alt="WWW" width="500" height="350" hspace="20"> </a></p>
+<p>Here is a version with less clutter and circle size conveying information (here number of trips):</p>
+<pre class="r"><code>leaflet(station.info) %&gt;% 
+  addTiles() %&gt;%
+  addCircles(lng = ~long, 
+             lat = ~lat, 
+             weight = 1,
+             radius = ~sqrt(n.trips)*2,
+             popup = ~name) %&gt;%
+  addProviderTiles(&quot;CartoDB.Positron&quot;)</code></pre>
+<p><a href="map4.html"> <img src="pics/map4.png" align="center" alt="WWW" width="500" height="350" hspace="20"> </a></p>
+
+
+{% endblock main_txt_area %}
+
+
