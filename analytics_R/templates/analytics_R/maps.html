@@ -4,7 +4,7 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">首页</a></li>
     <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+    <li class="breadcrumb-item active" aria-current="page"> 地图制作</li>
   </ol>
 </nav>
 {% endblock breadcrumbs %}
@@ -29,7 +29,7 @@ library(tidyr)
 ucsd.map &lt;- get_map(&quot;UC San Diego&quot;,zoom=15)
 ggmap(ucsd.map)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-1-1.png" alt="" />
+<img src="/static/analytics_R/maps_1.png" alt="" />
 
 </div>
 <p>The <em>get_map</em> command downloads the map from Google Maps, while the <em>ggmap</em> actually constructs the plot. This map is not particularly interesting since it has no data on it. Let’s add some data on crime incidence. The following data contains information on all reported crimes in San Diego in 2012 ( <a href="http://data.sandiegodata.org/dataset/clarinova_com-crime-incidents-casnd-7ba4-extract">Source</a>). It has information on date and time of day of crime, location of crime (latitude, longitude) and the type of crime. We can add points indicating an incident to the map using the standard <em>geom_point</em> command:</p>
@@ -40,7 +40,7 @@ ggmap(ucsd.map) +
              aes(x=lon,y=lat),
              size=4,alpha=.7)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+<img src="/static/analytics_R/maps_2.png" alt="" />
 
 </div>
 <p>Nice - but what are these crimes? You can indicate this by coloring the points:</p>
@@ -49,7 +49,7 @@ ggmap(ucsd.map) +
              aes(x=lon,y=lat,color=type),
              size=4,alpha=.7)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+<img src="/static/analytics_R/maps_3.png" alt="" />
 
 </div>
 <p>How about the whole city of San Diego? Let’s download a new map (for the whole city), and then concentrated on the most prevalent types of crime:</p>
@@ -66,7 +66,7 @@ ggmap(san.diego.map) +
   facet_wrap(~type) + 
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+<img src="/static/analytics_R/maps_4.png" alt="" />
 
 </div>
 <div id="mapping-the-citibike-data" class="section level2">
@@ -92,7 +92,7 @@ ggmap(newyork.map) +
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
   xlab(&#39;&#39;)+ylab(&#39;&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-5-1.png" alt="" />
+<img src="/static/analytics_R/maps_5.png" alt="" />
 
 </div>
 <p>Ok - now add information on station activity:</p>
@@ -102,7 +102,7 @@ ggmap(newyork.map) +
   theme(axis.ticks = element_blank(),axis.text = element_blank())+
   xlab(&#39;&#39;)+ylab(&#39;&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-6-1.png" alt="" />
+<img src="/static/analytics_R/maps_6.png" alt="" />
 
 </div>
 <p>Let’s finish this section with a slightly more complicated analysis: Take the busiest station in the system (in terms of starting trips). Then visualize to where the most frequently occurring trips are.</p>
@@ -152,7 +152,7 @@ ggmap(map521) +
   xlab(&#39;&#39;)+ylab(&#39;&#39;) +
   ggtitle(paste0(&#39;Top 20 Trips starting at &#39;, top.station$name))</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-9-1.png" alt="" />
+<img src="/static/analytics_R/maps_9.png" alt="" />
 
 </div>
 </div>
@@ -166,7 +166,7 @@ ggmap(map521) +
 <pre class="r"><code>ny.map &lt;- get_map(&quot;1015 5th Ave, New York, NY&quot;, color=&quot;bw&quot;,zoom=18)
 ggmap(ny.map)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-10-1.png" alt="" />
+<img src="/static/analytics_R/maps_10.png" alt="" />
 
 </div>
 <p>Using the latitude and longitude information the map, we can grab trips that end near the museum entry:</p>
@@ -198,7 +198,7 @@ ggmap(ny.map) +
              aes(x=dropoff_longitude,y=dropoff_latitude),size=.03,alpha=0.3,color=&quot;red&quot;)+
   ggtitle(&#39;Taxi Dropoffs near the Met&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-11-1.png" alt="" />
+<img src="/static/analytics_R/maps_11.png" alt="" />
 
 </div>
 <p>Let’s assume that these represent trips to the Met. Where did they originate? We can answer that by plotting the origin latitude and longitude. We need a new map to capture a wider area - here we center it around Central Park:</p>
@@ -212,7 +212,7 @@ ggmap(ny.map) +
    theme(axis.ticks = element_blank(),
         axis.text = element_blank())</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+<img src="/static/analytics_R/maps_12.png" alt="" />
 
 </div>
 <p>The majority of trips ending with a dropoff near the Met originate on the Upper East and West side and the Midtown neighborhood. Very few trips originate in the lower part of Manhattan and from Harlem.</p>
@@ -225,7 +225,7 @@ ggmap(ny.map) +
   ylab(&#39;Trips&#39;)+xlab(&#39;Hour of Day&#39;)+
   ggtitle(&#39;Taxi Arrivals near the Met by Time of Day&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-13-1.png" alt="" />
+<img src="/static/analytics_R/maps_13.png" alt="" />
 
 </div>
 <p>What time do you think the Met opens……?</p>
@@ -235,7 +235,7 @@ ggmap(ny.map) +
   geom_bar() + xlab(&#39;Day of Week&#39;) + ylab(&#39;Trips&#39;) +
   ggtitle(&#39;Taxi Arrivals near the Met by Weekday&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+<img src="/static/analytics_R/maps_14.png" alt="" />
 
 </div>
 <p>How do people pay?</p>
@@ -250,7 +250,7 @@ taxi.drop.met %&gt;%
   xlab(&#39;Passenger Count&#39;)+ylab(&#39;Percent of Trips&#39;)+
   ggtitle(&#39;Payment for Taxi Trips to the Met&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+<img src="/static/analytics_R/maps_15.png" alt="" />
 
 </div>
 <p>Is type of payment correlated with origin of trip?</p>
@@ -262,7 +262,7 @@ taxi.drop.met %&gt;%
         axis.text = element_blank(),
         legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+<img src="/static/analytics_R/maps_16.png" alt="" />
 
 </div>
 <p>It seems like Cash trips have a relatively higher likelihood of originating in the Midtown district.</p>
@@ -275,7 +275,7 @@ taxi.drop.met %&gt;%
   scale_x_continuous(labels=percent)+xlab(&#39;Tip Size&#39;)+
   ggtitle(&#39;Tips for Taxi Trips to the Met&#39;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-17-1.png" alt="" />
+<img src="/static/analytics_R/maps_17.png" alt="" />
 
 </div>
 </div>
@@ -287,7 +287,7 @@ taxi.drop.met %&gt;%
 <p>We start by grabbing a map centered on the meatpacking district. We choose a high level of zoom:</p>
 <pre class="r"><code>ny.map &lt;- get_map(&quot;Meatpacking District, New York, NY&quot;, color=&quot;bw&quot;,zoom=17)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-19-1.png" alt="" />
+<img src="/static/analytics_R/maps_19.png" alt="" />
 
 </div>
 <p>Next we pick the required slice of time and add some nice labels:</p>
@@ -314,7 +314,7 @@ plot.df &lt;- taxi %&gt;%
         axis.text = element_blank(),
         legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-21-1.png" alt="" />
+<img src="/static/analytics_R/maps_21.png" alt="" />
 
 </div>
 <p>Let’s repeat this exercise for pick-ups:</p>
@@ -337,7 +337,7 @@ ggmap(ny.map)+
         axis.text = element_blank(),
         legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-22-1.png" alt="" />
+<img src="/static/analytics_R/maps_22.png" alt="" />
 
 </div>
 </div>
@@ -363,7 +363,7 @@ ggplot() +
   theme(legend.position=&quot;none&quot;)+
   ggtitle(bquote(atop(.(plot.title), atop(italic(.(plot.subtitle)), &quot;&quot;)))) </code></pre>
 <div class="figure">
-<img src="maps_files/figure-html/unnamed-chunk-23-1.png" alt="" />
+<img src="/static/analytics_R/maps_23.png" alt="" />
 
 </div>
 </div>

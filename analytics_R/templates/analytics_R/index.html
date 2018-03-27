@@ -14,12 +14,24 @@
       border:thin solid rgba(0,0,0,0.1);
       padding:15px;
      }
-  img {height:auto;}
+ .main-txt img {height:auto;}
 </style>
 
 <script defer src="/static/sitebase/fontawesome-free-5.0.8/svg-with-js/js/fontawesome-all.js"></script>
 {% endblock extrastyle %}
 
+{% block content%}
+{#<div class="row">#}
+<div class="sidebar-left col-md-2"> 
+{% block sidebar %}
+{% include "analytics_R/sidebar.html" %}
+{% endblock sidebar %}
+</div>
+
+<div class="row main-txt justify-content-center">
+{#<div class="col-md-2"></div> #}
+<div class="col-md-8 justify-self-center" {#style=“position:absolute;overflow-y:auto;height:550px;"#}>
+<div class="d-none d-lg-block w-100">
 {% block breadcrumbs %}
 <nav class="" aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -28,22 +40,18 @@
   </ol>
 </nav>
 {% endblock breadcrumbs %}
-
-{% block content%}
-<div class="row">
-<div class="col-md-2 scrollable"{# style=“position:absolute;overflow-y:scroll;" #}>
-{% block sidebar %}
-{% include "analytics_R/sidebar.html" %}
-{% endblock sidebar %}
 </div>
-<div class="col-md-8"{# style=“position:absolute;overflow-y:scroll;"#}>
+
 {% block main_txt_area %}
 <h3>本站R分析工具学习的内容译自 Professor Karsten Hansen（Rady School of Managment,UCSD）的教学内容，原文请参考<a href="http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html">http://lab.rady.ucsd.edu/sawtooth/RAnalytics/index.html</a></h3>
 {% endblock main_txt_area %}
 </div>
 </div>
+
+{#</div>#}
 {% endblock content %}
 {% block extra_jscode %}
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     $('nav.collapse').on('hidden.bs.collapse', function () {
@@ -57,7 +65,26 @@
         .toggleClass('fa-angle-up');
     });
  });
+</script>
 
+<script>
+/*document.addEventListener("scroll",setPosition);
+function setPosition(){
+    var scroll_top = document.body.scrollTop(),
+        sidebar = $("div.sidebar-left");
+        sidebar.css("top",scroll_top+"px");
+//        window.alert("scrollTOP:"+ scroll_top.toString());
+};*/
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
 </script>
 {% endblock extra_jscode %}
 

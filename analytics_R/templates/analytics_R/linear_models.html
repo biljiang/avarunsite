@@ -39,7 +39,7 @@ S = \beta_0 + \beta_{wk} Weekend + \beta_f Family + \beta_{med} D_{Nmed} + \beta
 </div>
 <div id="case-study-pricing-a-tractor" class="section level3">
 <h3>Case Study: Pricing a Tractor</h3>
-<p><img src="pics/track_tractor.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> Let’s use predictive analytics to develop a “blue book” for tractors: Given a set of tractor characteristics, what would we expect the market’s valuation to be?</p>
+<p><img src="/static/analytics_R/track_tractor.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> Let’s use predictive analytics to develop a “blue book” for tractors: Given a set of tractor characteristics, what would we expect the market’s valuation to be?</p>
 <p>The dataset <strong>auction_tractor.rds</strong> contains information on 12,815 auction sales of a specific model of tractor. These auctions occurred in many states across the US in the years 1989-2012. We will develop a model to predict auction prices for tractors in the 12 month period from May 2011 to April 2012 using the historical data from 1989 to April 2011. We can use the 12 months of “hold-out” data data to evaluate the success of the model in predicting future prices.</p>
 <p>Let’s start by loading the data and finding out what information is in it:</p>
 <pre class="r"><code>## get libraries 
@@ -98,7 +98,7 @@ auction.tractor.holdout &lt;- auction.tractor %&gt;%
 auction.tractor.fit %&gt;%
   ggplot(aes(x=SalePrice/1000)) + geom_histogram(binwidth=10)  + xlab(&quot;Sale Price (in $1,000)&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_1.png" alt="" />
 
 </div>
 <p>There is a quite a bit of variation in the observed prices with most prices being in the $25K to $75K range. Did prices change over the time period? Let’s check:</p>
@@ -115,7 +115,7 @@ auction.tractor.fit %&gt;%
   xlab(&#39;Year of Sale&#39;)+ylab(&#39; &#39;)+
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_3.png" alt="" />
 
 </div>
 <p>The average price increased by about $20K over the time period. Like cars, tractors depreciate with age. Let’s see how this is reflected in the price at auction:</p>
@@ -136,7 +136,7 @@ auction.tractor.fit %&gt;%
   theme(legend.position=&quot;none&quot;,
         axis.text.x = element_text(angle = 45, hjust = 1,size=8))</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_4.png" alt="" />
 
 </div>
 <p>The tractor model in the data has been sold as different sub-models (or “trim”) over time. Let’s see how prices vary across sub-models:</p>
@@ -151,7 +151,7 @@ auction.tractor.fit %&gt;%
   facet_wrap(~fiSecondaryDesc,scales=&#39;free&#39;)+
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-5-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_5.png" alt="" />
 
 </div>
 <p>Finally, let’s see how prices vary across states:</p>
@@ -164,7 +164,7 @@ auction.tractor.fit %&gt;%
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab(&#39;State&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-6-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_6.png" alt="" />
 
 </div>
 <p>What to take away from these summaries? Well, clearly we can conclude that any predictive model that we might consider should at a minimum account for year, state, sub-model and machine age effects.</p>
@@ -251,7 +251,7 @@ extract.coef(results.df,&quot;saleyear&quot;) %&gt;%
   geom_hline(aes(yintercept=0))+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-11-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_11.png" alt="" />
 
 </div>
 <p>This plot closely resembles the plot above of average prices per year. This is not strange since our “model” basically just calculates the average log price per year.</p>
@@ -263,7 +263,7 @@ extract.coef(results.df,&quot;saleyear&quot;) %&gt;%
   geom_hline(aes(yintercept=0))+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_12.png" alt="" />
 
 </div>
 <p>This model would be just fine if the main driver of variation in sale prices was a time trend. This is clearly false. One indication is to look at the with-in sample fit. For example, in the output above it says “Multiple R-squared: 0.064”. This means that the annual time trend only explains 6.4% of the overall variation in log prices. That is not a good predictive model. We can also evaluate the out-of-sample fit. Let’s grab the holdout data and then assume that the effect in 2011 carries over to 2012. So we are assuming that prices in 2012 are what they were in 2011:</p>
@@ -280,7 +280,7 @@ auction.tractor.holdout$saleyear=&#39;2011&#39;</code></pre>
 pred.df %&gt;%  
   ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_point(size=2)  + xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_14.png" alt="" />
 
 </div>
 <p>Yikes….not a good set of predictions: Actual log prices vary from 9 to over 11.5 and we are predicting them to be all the same. We need to improve this.</p>
@@ -300,7 +300,7 @@ pred.df %&gt;%
   ggplot(aes(x=log.sales,y=log.sales.pred)) + geom_point(size=2)  + geom_line(aes(x=log.sales,y=log.sales))+
   xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_16.png" alt="" />
 
 </div>
 <p>Here we have added a 45 degree line to the plot. Our predictions are slightly better than before but still not great. Let’s add information about the sub-model of each tractor:</p>
@@ -322,7 +322,7 @@ pred.df %&gt;%
   xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12) + 
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-18-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_18.png" alt="" />
 
 </div>
 <p>Ok - we are getting close to something useful. But we saw from the plots above that the age of the tractor was important in explaining prices so let’s add that to the model as a factor:</p>
@@ -349,7 +349,7 @@ results.trim.age.df &lt;- data.frame(sum.lm.trim.age$coefficients,confint(lm.tri
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab(&#39;Machine Age&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-20-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_20.png" alt="" />
 
 </div>
 <p>We can think of this as an age-depreciation curve. Compared to two year old (or less) tractors, 3 to 4 year old tractors are on average word 0.181 less on the log-price scale. This corresponds to exp(0.181)-1 = 19.8% percent. 11 to 15 year old tractors are worth exp(0.757)-1=113% less than two year old or younger tractors.</p>
@@ -361,7 +361,7 @@ results.trim.age.df &lt;- data.frame(sum.lm.trim.age$coefficients,confint(lm.tri
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab(&#39;State&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-21-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_21.png" alt="" />
 
 </div>
 <p>Tractors are cheapest in Michigan, Idahor and New Jersey and most expensive Oklahoma, Arizona and Nevada. Notice that we could not make these kinds of statements based on the raw data above since then we are confounding location with the type of tractor being sold at that location.</p>
@@ -384,7 +384,7 @@ pred.df %&gt;%
   xlab(&#39;Actual Log Prices&#39;) + ylab(&#39;Predicted Log Prices&#39;) + xlim(9,12)+ylim(9,12) + 
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/pred.trim.age-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_23.png" alt="" />
 
 </div>
 <p>It is often useful to calculate summary measures of the predictions of the different models. Here we calculate two metrics: Mean Absolute Prediction Error and Root Mean Square Prediction Error. The smaller these are, the better is the predictive ability of the model. Both of these metrics are on the same scale as the outcome variable, log price.</p>
@@ -403,7 +403,7 @@ pred.df %&gt;%
   gather(metric,value,-model) %&gt;%
   ggplot(aes(x=model,y=value,fill=model)) + geom_bar(stat=&#39;identity&#39;) + facet_wrap(~metric)+theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-22-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_22.png" alt="" />
 
 </div>
 <p>For both metrics we see that the model with both trim and age seems to do the best. It also had the best in-sample performance. Using this model we have an average absolute prediction error of about .2 on the log scale. Depending on the type of use of this predictive model this may and may not be an acceptable error.</p>
@@ -435,7 +435,7 @@ pred.df %&gt;%
 </div>
 <div id="case-study-weather-patterns-and-bike-commuting" class="section level3">
 <h3>Case Study: Weather Patterns and Bike Commuting</h3>
-<p><img src="pics/bike_rain.jpg" align="right" alt="WWW" width="300" height="250" hspace="20"> Let’s see how weather impacts bike demand in New York City’s citibike system. The data file <strong>bike_demand.rds</strong> contains trip data for three months, June-August 2015, aggregated to the hourly level. Each row in the data is a month-day-hour record with the total number of trips occurring in that month-day-hour window. The data file also contains day-hour weather information for the smae three month period. These have been scraped of the web from the web-site <a href="http://www.wunderground.com">www.wunderground.com</a> (if you are interested in the details of how to do this in R, you can find the code in <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/getNYCweather.r">this</a> file).</p>
+<p><img src="/static/analytics_R/bike_rain.jpg" align="right" alt="WWW" width="300" height="250" hspace="20"> Let’s see how weather impacts bike demand in New York City’s citibike system. The data file <strong>bike_demand.rds</strong> contains trip data for three months, June-August 2015, aggregated to the hourly level. Each row in the data is a month-day-hour record with the total number of trips occurring in that month-day-hour window. The data file also contains day-hour weather information for the smae three month period. These have been scraped of the web from the web-site <a href="http://www.wunderground.com">www.wunderground.com</a> (if you are interested in the details of how to do this in R, you can find the code in <a href="https://dl.dropboxusercontent.com/u/17328490/RAnalytics/data/getNYCweather.r">this</a> file).</p>
 <p>The weather data was merged with the bike trip data at the month-day-hour level. We can now investigate how sensitive bike demand is to weather. Here we will analyze the aggregate demand data. In an exercise you can try to see whether the results on the aggregate data is replicated on the two individual user segments present in the data. It is also possible to carry out the analysis by segmenting demand spatially, e.g., demand at individual bike stations.</p>
 <p>We start by loading the data and then setting up a model that has weekday and hour effects along with rain, temperature and humidity effects:</p>
 <pre class="r"><code>bike.demand &lt;- readRDS(&#39;data/bike_demand.rds&#39;)
@@ -453,7 +453,7 @@ bike.results &lt;- data.frame(summary(lm.bike)$coefficients,confint(lm.bike)) %&
   xlab(&#39;Amount of Rain (Inches)&#39;)+
   ggtitle(&#39;Rain Effects on Bike Demand&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-26-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_26.png" alt="" />
 
 </div>
 <p>The left level is 0.00, i.e., no precipitation. These are large effects. A small amount of rain, less than 0.05 inches, reduces demand by .58 on the log scale. This is equivalent to a exp(-0.58)-1=44% drop in number of trips! The effects are even more dramatic for large amounts of rain. Note that the effect is slightly smaller for the largest rain level compared to the medium sized levels. Why might that be?</p>
@@ -466,7 +466,7 @@ bike.results &lt;- data.frame(summary(lm.bike)$coefficients,confint(lm.bike)) %&
   xlab(&#39;Temperature (F)&#39;)+
   ggtitle(&#39;Temperature Effects on Bike Demand&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-27-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_27.png" alt="" />
 
 </div>
 <p>This is an inverse U-shape: Compared to the coolest days, trip demand increases with warmer temperatures and then levels off. For the hottest days we see a slight decline in trip demand (although this is not very precisely estimated).</p>
@@ -479,7 +479,7 @@ bike.results &lt;- data.frame(summary(lm.bike)$coefficients,confint(lm.bike)) %&
   xlab(&#39;Percent Humidity&#39;)+
   ggtitle(&#39;Humidity Effects on Bike Demand&#39;)</code></pre>
 <div class="figure">
-<img src="linear_models_files/figure-html/unnamed-chunk-28-1.png" alt="" />
+<img src="/static/analytics_R/linear_models_28.png" alt="" />
 
 </div>
 <p>Increasing humidity reduces demand for bikes. Very high humidity strongly reduces demand.</p>

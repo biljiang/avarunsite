@@ -1,5 +1,6 @@
 <!-- Navbar -->
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background-color: #417690" >
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #417690" >
+{#<nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background-color: #417690" >#}
   <a class="navbar-brand" href="/">AVARUN</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -11,7 +12,7 @@
         <a class="nav-link" href="/">首页 <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle{% if 'analytics' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           工具学习
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -22,7 +23,7 @@
         </div>
       </li>
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle{% if 'modeling' in request.path_info %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           数据建模
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">

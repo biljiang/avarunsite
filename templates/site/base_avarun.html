@@ -1,4 +1,5 @@
 {% load i18n static %}<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 {% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
@@ -10,7 +11,6 @@
 <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
 <style type="text/css">
    body {
-        padding-top:50px;
         padding-bottom:40px;
         }
 </style>
@@ -33,16 +33,16 @@
     {% include "site/navbar_home.html" %}
     {% endblock navbar %}
 
+    {% comment %}
     <div class="d-none d-lg-block w-100">
     {% block breadcrumbs %}
-    {% comment %}
     <div class="breadcrumbs">
         <a href="{% url 'root_index' %}">{% trans 'Home' %}</a>
         {% if title %} &rsaquo; {{ title }}{% endif %}
     </div>
-    {% endcomment %}
     {% endblock %}
     </div>
+    {% endcomment %}
 
     {% endif %}
 
@@ -91,7 +91,19 @@
 <script src="https://www.avarun.cn/static/sitebase/js/jquery-3.3.1.slim.min.js"></script>
 <script src="https://www.avarun.cn/static/sitebase/js/popper.min.js"></script>
 <script src="https://www.avarun.cn/static/sitebase/js/bootstrap.min.js"></script>
+<script>
+  $(document).ready(function () {
+    if ($(window).width()> 991){
+    $("nav.navbar").addClass("fixed-top");
+    $("body").css("padding-top","55px");
+    $("div .main-txt").css("padding-top","0px");
+    $("div .sidebar-left").css("position","fixed")}
+    else {
+    $(".main-txt img").css("width","100%")};
+    });
+</script>
 
+{#<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-MML-AM_CHTML' async></script>#}
 {% endblock jscode %}
 {% block extra_jscode %}
 {% endblock %}

@@ -29,7 +29,7 @@ ggmap(get_map(&quot;The Strip, Las Vegas, Nevada&quot;,zoom=15,color = &quot;bw&
               aes(x=longitude,y=latitude,label=name),
               size=3,color=&#39;red&#39;)  </code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-3-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_1.png" alt="" />
 
 </div>
 <p>In addition to text, each review also contain a star rating from 1 to 5. Let’s see how the 18 hotels fare on average in terms of star ratings:</p>
@@ -48,7 +48,7 @@ reviews %&gt;%
   ylab(&#39;Mean Star Rating (1-5)&#39;) + 
   xlab(&#39;Hotel&#39;)</code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_4.png" alt="" />
 
 </div>
 <p>So The Venetian, Bellagio and The Cosmopolitan are clearly the highest rated hotels, while Luxor and LVH are the lowest rated. Ok, but what is behind these ratings? What are customers actually saying about these hotels? This is what we can hope to find through a text analysis.</p>
@@ -197,7 +197,7 @@ term.count %&gt;%
   ggplot(aes(x=reorder(Terms,n),y=n)) + geom_bar(stat=&#39;identity&#39;) + 
   coord_flip() + xlab(&#39;Counts&#39;) + ylab(&#39;&#39;)</code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_14.png" alt="" />
 
 </div>
 <p>A popular visualization tools of term counts is a word cloud. This is simply an alternative visual representation of the counts. We can easily make one:</p>
@@ -205,7 +205,7 @@ term.count %&gt;%
 popular.terms &lt;- filter(term.count,n &gt; 200)
 wordcloud(popular.terms$Terms,popular.terms$n,colors=brewer.pal(8,&quot;Dark2&quot;))</code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_15.png" alt="" />
 
 </div>
 <p>Ok, now let’s look at associations between terms. When people talk about “room”, what other terms are used?</p>
@@ -217,7 +217,7 @@ room %&gt;%
   coord_flip() + ylab(&#39;Correlation&#39;) + xlab(&#39;Term&#39;) + 
   ggtitle(&#39;Terms correlated with Room&#39;)</code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_16.png" alt="" />
 
 </div>
 <p>This seems to be terms related to the check-in process. This is something that can be explored in more detail using topic models.</p>
@@ -230,7 +230,7 @@ bathroom %&gt;%
   coord_flip() + ylab(&#39;Correlation&#39;) + xlab(&#39;Term&#39;) + 
   ggtitle(&#39;Terms correlated with Bathroom&#39;)</code></pre>
 <div class="figure">
-<img src="corpus_summary_files/figure-html/unnamed-chunk-17-1.png" alt="" />
+<img src="/static/analytics_R/corpus_summary_17.png" alt="" />
 
 </div>
 <p>When talking about the bathroom users are most likely to mention “tub”“,”shower“,”light“,”toilet&quot; and “room”.</p>

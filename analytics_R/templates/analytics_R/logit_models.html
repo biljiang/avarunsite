@@ -20,7 +20,7 @@
 
 
 <hr />
-<p><img src="pics/binary.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> In this section we will develop methods for predicting binary events. These are events that either occur or don’t occur. For example, will a certain customer place a new order in the next month? Clearly, this will either happen or not happen. In order to do this we need to modify our approach from the one we used when discussing linear predictive models. These were models of the mean of a continuous variable, e.g., log price. What we need to do now is to model the mean of a binary variable, e.g., a <em>probability</em>. If the predicted probability of the event occurring is high we will predict that it is likely that the event will occur. Since we are modelling probabilities we need to make sure that the predicted probabalities are constrained to be between zero and one. The most popular model for doing this is the <strong>Logit Model</strong>.</p>
+<p><img src="/static/analytics_R/binary.jpg" align="right" alt="WWW" width="400" height="350" hspace="20"> In this section we will develop methods for predicting binary events. These are events that either occur or don’t occur. For example, will a certain customer place a new order in the next month? Clearly, this will either happen or not happen. In order to do this we need to modify our approach from the one we used when discussing linear predictive models. These were models of the mean of a continuous variable, e.g., log price. What we need to do now is to model the mean of a binary variable, e.g., a <em>probability</em>. If the predicted probability of the event occurring is high we will predict that it is likely that the event will occur. Since we are modelling probabilities we need to make sure that the predicted probabalities are constrained to be between zero and one. The most popular model for doing this is the <strong>Logit Model</strong>.</p>
 <div id="logit-models" class="section level3">
 <h3>Logit Models</h3>
 <p>Suppose we want to understand what drives some users to click on an online banner ad. In this case we can let <span class="math inline">\(Y\)</span> denote the binary event with <span class="math display">\[
@@ -41,7 +41,7 @@ Y_i=
 </div>
 <div id="case-study-titanic" class="section level3">
 <h3>Case Study: Titanic</h3>
-<p><img src="pics/Titanic.jpeg" align="right" alt="WWW" width="400" height="350" hspace="20"> You are about to board the Titanic - would you rather be Jack or Rose? Well, of course we know what happened in the movie - but was this representative of the actual survival rates of rich young women vs. poor young men? And what about old men or women? Let’s build a logit model to predict survival probabilities for different traveller segments on the Titanic.</p>
+<p><img src="/static/analytics_R/Titanic.jpeg" align="right" alt="WWW" width="400" height="350" hspace="20"> You are about to board the Titanic - would you rather be Jack or Rose? Well, of course we know what happened in the movie - but was this representative of the actual survival rates of rich young women vs. poor young men? And what about old men or women? Let’s build a logit model to predict survival probabilities for different traveller segments on the Titanic.</p>
 <p>First, we need the actual passenger data for Titanic with information on demographics and survival outcomes. It turns out that this exists - although it is incomplete: We only have survival information on 1309 of the more than 2000 passengers and complete demographics only for 1046 passengers. However, let’s see what we can do with what we have. First, load the data and see what variables we have:</p>
 <pre class="r"><code>## load libraries
 library(ggplot2)
@@ -79,14 +79,14 @@ head(titanic)</code></pre>
 titanic %&gt;%
   ggplot(aes(x=pclass,fill=survived)) + geom_bar(position=&#39;dodge&#39;) + xlab(&#39;Class of Travel&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_1.png" alt="" />
 
 </div>
 <pre class="r"><code>## by gender
 titanic %&gt;%
   ggplot(aes(x=sex,fill=survived)) + geom_bar(position=&#39;dodge&#39;) </code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-2-2.png" alt="" />
+<img src="/static/analytics_R/logit_models_2.png" alt="" />
 
 </div>
 <pre class="r"><code>## by age
@@ -95,7 +95,7 @@ titanic %&gt;%
   mutate(age.f=cut(age,breaks=c(0,20,30,40,50,60,100))) %&gt;%
   ggplot(aes(x=age.f,fill=survived)) + geom_bar(position=&#39;dodge&#39;) + xlab(&#39;Age Group&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-2-3.png" alt="" />
+<img src="/static/analytics_R/logit_models_3.png" alt="" />
 
 </div>
 <p>Hmm…it’s pretty clear that passengers travelling on 3rd class didn’t fare well compared to 1st and 2nd class passengers, and 2nd class passengers were worse off compared to 1st class. We also see a huge gender effect - many more female passengers survived. It is a bit harder to judge the age effect. However, it seems like the survival rate is much lower for 20-30 year olds than any of the other categories.</p>
@@ -178,7 +178,7 @@ pred.df %&gt;%
         plot.title=element_text(size=14))+
   ggtitle(&#39;Predicted Survival Probability by Class of Travel, Gender and Age&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-7-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_7.png" alt="" />
 
 </div>
 <p>What would you conclude about demographics and survival rates based on this?</p>
@@ -233,7 +233,7 @@ pred.df %&gt;%
         plot.title=element_text(size=14))+
   ggtitle(&#39;Predicted Survival Probability by Class of Travel, Gender and Age&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-9-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_9.png" alt="" />
 
 </div>
 <p>Compare this to the previous plot.</p>
@@ -278,7 +278,7 @@ car.test %&gt;%
   gather(model,prediction) %&gt;%
   ggplot(aes(x=prediction,fill=model)) + geom_histogram(alpha=0.5,position = &quot;identity&quot;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_12.png" alt="" />
 
 </div>
 <p>Notice the difference in spread of these two distributions: For model A there is a very limited range of predicted risk, tightly clustered around the average risk (just arond 10%). Model B is much more discerning, clearly ruling out some cars to be lemons, while predicting others cars to have highly elevated risk (2 to 3 times as large as the average).</p>
@@ -330,7 +330,7 @@ lift.B &lt;- car.test %&gt;%
   scale_x_continuous(labels=percent,limits=c(0,1),breaks=seq(0,1,.1))+
   ggtitle(&#39;Lift Chart - Model B&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_15.png" alt="" />
 
 </div>
 <p>How to read this lift chart? The red line is a 45 degree line. This line represents a situation where we have no useful information what so ever in predicting whether or not a car is a bad buy. In this case the 10% most risky purchases would just be a 10% random sample of the 10,000 cars in the holdout sample and therefore would represent 10% of all lemons. The black line represents the “lift” created by the model: The chart shows that the group of 10% most risky car purchases as predicted by the model, is responsible for 24% of all lemons. The group consisting of the worst 20% is responsible for 40% of all lemons. This is not perfect - you will often make a wrong purchase - but it is clearly better than <strong>not</strong> using a model.</p>
@@ -424,7 +424,7 @@ lift.B &lt;- car.test %&gt;%
   scale_x_continuous(labels=percent,limits=c(0,1),breaks=seq(0,1,.1))+
   ggtitle(&#39;Lift Chart - Model A&#39;)</code></pre>
 <div class="figure">
-<img src="logit_models_files/figure-html/unnamed-chunk-18-1.png" alt="" />
+<img src="/static/analytics_R/logit_models_18.png" alt="" />
 
 </div>
 </div>

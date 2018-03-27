@@ -4,7 +4,7 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">首页</a></li>
     <li class="breadcrumb-item"><a href={% url "analytics_R:index" %}>分析工具-R</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Tidy Data</li>
+    <li class="breadcrumb-item active" aria-current="page">可视化：ggplot2</li>
   </ol>
 </nav>
 {% endblock breadcrumbs %}
@@ -19,7 +19,7 @@
 
 
 <hr />
-<p><img src="pics/crime_plot2.png" align="right" alt="WWW" width="500" height="350" hspace="20"><br />
+<p><img src="/static/analytics_R/crime_plot2.png" align="right" alt="WWW" width="500" height="350" hspace="20"><br />
 Visualizations bring data to life. A good visualization will give you new insights and will often lead to new ideas for additional analyses or visualizations. As humans we are much better at processing visual information than numeric information - both in terms of comprehension and speed. So unless you can think of any reason otherwise, you should should always present your raw data AND the results of any analysis you have done as a visualization.</p>
 <p>One of the real strengths of R is the ability to visualize even very complex data. See the map on the right? This shows incidents of 6 types of crimes in San Diego for the year 2012. This map shows both the geographical dispersion of different crimes and their actual incidence. You can produce this map with one line of code (you will see how in the <a href="maps.html">maps</a> section). You can even make interactive maps allowing the user obtain further information by clicking on the map.</p>
 <p>In this section we will focus on using the powerful ggplot2 library. When you mastered this you will have a wide range of visualization tools at your disposal with very little coding effort.</p>
@@ -60,7 +60,7 @@ taxi.new &lt;- taxi %&gt;%
 <p>We can start by looking at the total number of cab rides. For example, total number by day of the month:</p>
 <pre class="r"><code>ggplot(data=taxi.new, aes(x=day)) + geom_bar()</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-2-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_1.png" alt="" />
 
 </div>
 <p>This produces a simple bar chart with counts of the number of rides (or rows in the data) for each value of <strong>day</strong>. The command <strong>aes</strong> means “aesthetic” in ggplot. Plot aesthetics are used to tell R what should be plotted, which colors or shapes to use etc. You can also use the “chain” syntax from <strong>dplyr</strong> in conjunction with ggplot. For example, the command</p>
@@ -71,7 +71,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   filter(payment_type2==&#39;Cash&#39;) %&gt;%
   ggplot(aes(x=day)) + geom_bar()</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-4-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_2.png" alt="" />
 
 </div>
 <p>Let’s compare the number of credit and cash rides:</p>
@@ -79,7 +79,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   filter(!payment_type2 %in% &#39;Other&#39;) %&gt;%      # remove other types of payment
   ggplot(aes(x=day,fill=payment_type2)) + geom_bar()</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-5-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_3.png" alt="" />
 
 </div>
 <p>There are clearly more credit card rides than cash rides. If you “dodge” the bars you can plot them next to each other instead:</p>
@@ -87,18 +87,18 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   filter(!payment_type2 %in% &#39;Other&#39;) %&gt;%      
   ggplot(aes(x=day,fill=payment_type2)) + geom_bar(position=&#39;dodge&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-6-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_4.png" alt="" />
 
 </div>
 <p>Next, let’s look at ride activity by time of day:</p>
 <pre class="r"><code>taxi.new %&gt;%
   ggplot(aes(x=hour.trip.start)) + geom_bar() </code></pre>
-<p><img src="visualization_files/figure-html/unnamed-chunk-7-1.png" alt="" /> Between 8am and 3pm there is a stable and roughly constant number of rides. Trip demand then increases between 6pm and 10pm. Above we saw that, overall, there were substantially more credit card rides than cash rides. Is this true throughout the day?</p>
+<p><img src="/static/analytics_R/ggplot_5.png" alt="" /> Between 8am and 3pm there is a stable and roughly constant number of rides. Trip demand then increases between 6pm and 10pm. Above we saw that, overall, there were substantially more credit card rides than cash rides. Is this true throughout the day?</p>
 <pre class="r"><code>taxi.new %&gt;%
   filter(!payment_type2 %in% &#39;Other&#39;) %&gt;%      
   ggplot(aes(x=hour.trip.start,fill=payment_type2)) + geom_bar(position=&#39;dodge&#39;) </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-8-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_6.png" alt="" />
 
 </div>
 <p>We see a large variation in the ratio of payment types throughout the day. For example, in the evening there are about twice as many credit card trips compared to cash trips. However, in the early morning it is close to 50-50.</p>
@@ -106,7 +106,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
 <pre class="r"><code>taxi.new  %&gt;%
   ggplot(aes(x=weekday)) + geom_bar() </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-9-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_7.png" alt="" />
 
 </div>
 <p>Most trips are on Tuesdays? That sounds weird. Here it is important to remember two things: What the structure of the data is and how R plots the data. Remember that the data are all trips (well, here a 5% sample of all trips) for each day of June 2015. To determine the height of a bar, R will count the number of rows for each value of weekday. If your objective is to compare the number of trips for each day of week, this calculation will only make sense if there are the same number of each weekday in a month. Let’s check:</p>
@@ -134,7 +134,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   summarize(n.trip.mean=mean(n)) %&gt;%
   ggplot(aes(x=wday,y=n.trip.mean)) + geom_bar(stat=&#39;identity&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-11-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_8.png" alt="" />
 
 </div>
 <p>Since you have already calculated the height of each bar, you need to tell R what the variable capturing bar-height is (below “n.trip.mean”) and that no more counting is necessary (<strong>stat=‘identity’</strong>).</p>
@@ -143,7 +143,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   count(day) %&gt;%
   ggplot(aes(x=day,y=n)) + geom_point() </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-12-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_9.png" alt="" />
 
 </div>
 <p>Here it might be good to connect the points by a line to indicate the time-series nature of the data:</p>
@@ -151,7 +151,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   count(day) %&gt;%
   ggplot(aes(x=day,y=n)) + geom_point() + geom_line(aes(group=1),linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-13-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_10.png" alt="" />
 
 </div>
 <p>You need to tell R which points to connect. The option <strong>group=1</strong> simply means all of them. Here is the time of day version using points and lines:</p>
@@ -159,7 +159,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   count(hour.trip.start) %&gt;%
   ggplot(aes(x=hour.trip.start,y=n)) + geom_point() + geom_line(aes(group=1),linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-14-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_11.png" alt="" />
 
 </div>
 <p>Let’s add payment type using a different color for each payment:</p>
@@ -168,7 +168,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   count(payment_type2, hour.trip.start) %&gt;%
   ggplot(aes(x=hour.trip.start,y=n,color=payment_type2,group=payment_type2)) + geom_point() + geom_line(linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-15-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_12.png" alt="" />
 
 </div>
 </div>
@@ -178,7 +178,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
 <pre class="r"><code>taxi.new %&gt;%
   ggplot(aes(x=trip.duration)) + geom_histogram()</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-16-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_13.png" alt="" />
 
 </div>
 <p>ehh….what?? - that’s a weird histogram. This is the (very standard) problem of outliers. Here are the 5 longest trips in the data:</p>
@@ -202,7 +202,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
 <pre class="r"><code>taxi.new %&gt;%
   ggplot(aes(x=trip.duration)) + geom_histogram() + xlim(0,120)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-19-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_14.png" alt="" />
 
 </div>
 <p>Much better! Most trips are less than 60 minutes with the vast majority of trips between 0 and 25 minutes. This is also a highly skewed distribution so if we want to characterize the “typical” trip duration we should probably not use the average. In the following we will focus on the median trip duration.</p>
@@ -212,7 +212,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   summarize(med.duration=median(trip.duration)) %&gt;%
   ggplot(aes(x=day,y=med.duration)) + geom_point() + geom_line(aes(group=1),linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-20-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_15.png" alt="" />
 
 </div>
 <p>Let’s “pretty-up” this plot a bit by adding some axis titles and weekday information:</p>
@@ -225,7 +225,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   xlab(&#39;Day of Month&#39;)+ylab(&#39;Median Trip Duration (Mins.)&#39;)+
   ggtitle(&quot;Median Trip Duration by Day of Month&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-21-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_16.png" alt="" />
 
 </div>
 <p>In terms of duration, the longest trips are on Tuesdays and Wednesdays, while the shortest are on weekends. An alternative approach is to add labels directly on the plot:</p>
@@ -237,7 +237,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   geom_line(aes(group=1),linetype=&#39;dotted&#39;)+
   xlab(&#39;Day of Month&#39;)+ylab(&#39;Median Trip Duration (Mins.)&#39;)+ggtitle(&quot;Median Trip Duration by Day of Month&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-22-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_17.png" alt="" />
 
 </div>
 <p>Now let’s look at median trip duration by time of day:</p>
@@ -246,7 +246,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   summarize(med.duration=median(trip.duration)) %&gt;%
   ggplot(aes(x=hour.trip.start,y=med.duration)) + geom_point() + geom_line(aes(group=1),linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-23-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_18.png" alt="" />
 
 </div>
 <p>Does this pattern stay stable throughout the week? Let’s break out this relationship for each weekday:</p>
@@ -260,7 +260,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   theme(legend.position=&quot;none&quot;)+
   scale_x_discrete(breaks=c(0,3,6,9,12,15,18,21))</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-24-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_19.png" alt="" />
 
 </div>
 <p>This visualization is an example of a “facet” and this feature alone makes it worthwhile to learn ggplot. A facet repeats the same base plot for every value of the facet variable - here weekday. This makes it laughably easy to make complex and highly informative plots.</p>
@@ -276,7 +276,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   theme(legend.position=&quot;none&quot;)+
   scale_x_discrete(breaks=c(0,3,6,9,12,15,18,21))</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-25-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_20.png" alt="" />
 
 </div>
 <p>Admittedly this is not a good visualization if the objective is to highlight differences between payment types by weekday and time of day. Here is a better version for that purpose:</p>
@@ -293,7 +293,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   xlab(&#39;Time of Day&#39;)+
   scale_x_discrete(breaks=c(0,6,12,18))</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-26-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_21.png" alt="" />
 
 </div>
 <p>Trips paid with credit card tend to be slightly longer in duration - especially for mid-day and mid-week trips.</p>
@@ -309,7 +309,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   geom_line(aes(group=1),linetype=&#39;dotted&#39;)+
   xlab(&#39;Day of Month&#39;)+ylab(&#39;Median Trip Distance (Miles)&#39;)+ggtitle(&quot;Median Trip Distance by Day of Month&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-28-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_22.png" alt="" />
 
 </div>
 <p>In terms of distance, we see the longest trips on weekends. For time of day we get</p>
@@ -318,7 +318,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   summarize(med.trip=median(trip_distance)) %&gt;%
   ggplot(aes(x=hour.trip.start,y=med.trip)) + geom_point(size=3) + geom_line(aes(group=1),linetype=&#39;dotted&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-29-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_23.png" alt="" />
 
 </div>
 <p>Trips are longer at night and shortest during the day. Here is the version where we cut it by weekday:</p>
@@ -332,7 +332,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   theme(legend.position=&quot;none&quot;)+
   scale_x_discrete(breaks=c(0,3,6,9,12,15,18,21))</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-30-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_24.png" alt="" />
 
 </div>
 <div id="taxi-exercise-1-trip-speed" class="section level4">
@@ -348,7 +348,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   ggplot(aes(x=fare_amount,fill=payment_type2)) + geom_histogram() + facet_wrap(~payment_type2) + xlim(0,75)+
   theme(legend.position=&quot;none&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-31-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_25.png" alt="" />
 
 </div>
 <p>These distributions are not too different - credit card trips appear to have slightly larger fares.</p>
@@ -362,7 +362,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   geom_line(aes(group=1),linetype=&#39;dotted&#39;)+
   xlab(&#39;Day of Month&#39;)+ylab(&#39;Mean Fare ($)&#39;)+ggtitle(&quot;Mean Fare Amount by Day of Month&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-32-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_26.png" alt="" />
 
 </div>
 <p>Let’s investigate the relationship between fare amount, hour of day, weekday and payment type:</p>
@@ -376,7 +376,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   scale_x_discrete(breaks=c(0,6,12,18))+
   ylab(&#39;Mean Fare ($)&#39;) + xlab(&#39;Hour of Trip Start&#39;)+ggtitle(&#39;Mean Fares by Time of Day and Weekday&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-33-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_27.png" alt="" />
 
 </div>
 <p>Mean fares tend to be $2-$3 higher for credit card trips.</p>
@@ -399,14 +399,14 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
 <pre class="r"><code>ggplot(data=citibike,aes(x=start.hour)) + geom_bar() + xlab(&#39;Time of Day&#39;) + ylab(&#39;Number of Trips&#39;)+
   theme(axis.text.x  = element_text(size=8,angle=90))</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-34-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_28.png" alt="" />
 
 </div>
 <p>Hmmm…looks like there are large rush hour effects - both morning and afternoon. But it this true for both user segments?</p>
 <pre class="r"><code>ggplot(data=citibike,aes(x=start.hour)) + geom_bar() + xlab(&#39;Time of Day&#39;) + ylab(&#39;Number of Trips&#39;)+
   theme(axis.text.x  = element_text(size=8,angle=90)) + facet_wrap(~usertype)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-35-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_29.png" alt="" />
 
 </div>
 <p>No - rush hour spikes seems to be limited to the “Subscriber” segment.</p>
@@ -414,7 +414,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
 <pre class="r"><code>ggplot(data=citibike,aes(x=weekday)) + geom_bar() + xlab(&#39;Day of Week&#39;) + 
   ylab(&#39;Number of Trips&#39;) + ggtitle(&#39;Number of Bike Trips by Day of Week&#39;)     </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-36-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_30.png" alt="" />
 
 </div>
 <p>This suffers from the same problem that we encountered for the taxi data - some weekdays occur 5 times in a month while others only occur 4 times. We can correct this the same say as for the taxi data:</p>
@@ -427,7 +427,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   ggplot(aes(x=weekday,y=n.m)) + geom_bar(stat=&#39;identity&#39;) + xlab(&#39;Day of Week&#39;) + 
   ylab(&#39;Number of Trips&#39;) + ggtitle(&#39;Number of Bike Trips by Day of Week&#39;)     </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-37-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_31.png" alt="" />
 
 </div>
 <p>The fewest number of trips occurs on weekends. Is this pattern the same for both segments?</p>
@@ -440,7 +440,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   ggplot(aes(x=weekday,y=n.m)) + geom_bar(stat=&#39;identity&#39;) + xlab(&#39;Day of Week&#39;) + 
   ylab(&#39;Number of Trips&#39;) + facet_wrap(~usertype) + ggtitle(&#39;Number of Bike Trips by Day of Week&#39;)     </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-38-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_32.png" alt="" />
 
 </div>
 <p>That’s interesting! For “Customers” we see spikes on weekends, while the opposite is true for “Subcribers”. This is consistent with the interpretation of customers as tourists and subscribers as locals.</p>
@@ -457,7 +457,7 @@ ggplot(aes(x=day)) + geom_bar()</code></pre>
   theme(axis.text.x  = element_text(size=8,angle=90),
         legend.position=&quot;NULL&quot;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-39-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_33.png" alt="" />
 
 </div>
 <p>Even more interesting: On weekends, “Subscribers” as as “Customers” - no rush hour spikes.</p>
@@ -469,7 +469,7 @@ citibike %&gt;%
   filter(tripduration.m &lt; 100) %&gt;%
   ggplot(aes(x=tripduration.m)) + geom_histogram()+xlab(&#39;Trip Duration (min.))&#39;) + ylab(&#39;Number of Trips&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-40-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_34.png" alt="" />
 
 </div>
 <p>This is a skewed distribution with a long right tail. Most trips are less than 30 minutes. Do the two segments have similar duration distributions?</p>
@@ -478,7 +478,7 @@ citibike %&gt;%
   ggplot(aes(x=tripduration.m)) + geom_histogram()+xlab(&#39;Trip Duration (min.)&#39;) + ylab(&#39;Number of Trips&#39;) + 
   facet_wrap(~usertype)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-41-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_35.png" alt="" />
 
 </div>
 <p>These distributions are different - the “Customer” distribution is much less skewed with more weight on longer trips. This is more evident if we plot the density versions of the histograms (a “density” is just a smoothed version of a histogram):</p>
@@ -486,7 +486,7 @@ citibike %&gt;%
   filter(tripduration.m &lt; 100) %&gt;%
   ggplot(aes(x=tripduration.m,fill=usertype)) + geom_density(alpha=0.2)+xlab(&#39;Trip Duration (min.)&#39;) + ylab(&#39;Number of Trips&#39;) </code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-42-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_36.png" alt="" />
 
 </div>
 <p>Here we clearly see that customers take longer trips than subscribers.</p>
@@ -502,7 +502,7 @@ citibike %&gt;%
   geom_point() + geom_line(linetype=&#39;dotted&#39;) +ylab(&#39;Trip Duration (min.)&#39;) + xlab(&#39;Age Group&#39;) + 
   ggtitle(&#39;Median Trip Duration by Gender and Birth Year&#39;)</code></pre>
 <div class="figure">
-<img src="visualization_files/figure-html/unnamed-chunk-43-1.png" alt="" />
+<img src="/static/analytics_R/ggplot_37.png" alt="" />
 
 </div>
 <p>Answer: Yes! Men take shorter (in time) trips than women at any age. Furthermore, younger riders of any gender take shorter trips than older riders.</p>
