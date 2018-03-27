@@ -17,5 +17,9 @@ urlpatterns = [
     url(r'^logit_models/', views.LogitModelsView.as_view(), name='logit_models'),
     url(r'^text_intro/', views.TextIntroView.as_view(), name='text_intro'),
     url(r'^corpus_summary/', views.CorpusSummaryView.as_view(), name='corpus_summary'),
+    url(r'^database_access/', views.DatabaseAccessView.as_view(), name='database_access'),
+    url(r'^k_means/', views.KmeansView.as_view(), name='k_means'),
+    url(r'^classification/', login_required(views.ClassificationView.as_view()), name='classification'),
+    url(r'^sentiment/', views.SentimentView.as_view(), name='sentiment'),
 #    url(r'^', include('django.contrib.auth.urls')),
 ]

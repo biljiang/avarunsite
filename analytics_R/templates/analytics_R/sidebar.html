@@ -13,7 +13,7 @@
 
       <div class="collapse d-lg-block" id="navbarContent">  
       <nav class="nav-item">
-        {% if "data_management" in request.path_info %}
+        {% if "data_management" in request.path_info or "database_access" in request.path_info %}
         <a class="nav-link" href="#" id="navbarCollapseZero" role="button" data-toggle="collapse" data-target="#collapseZero" aria-expanded="true" aria-controll="collapseZero">
           <i class="fa fa-angle-up"></i>数据输入
         </a>
@@ -25,7 +25,7 @@
         <nav class="collapse" id="collapseZero" aria-labelledby="navbarCollapseZero" data-parent="#navbarContent">
         {% endif %}
           <a class="nav-link ml-3{% if 'data_management' in request.path_info %} active{% endif %}" href={% url "analytics_R:data_management" %}>R 数据管理</a>
-          <a class="nav-link ml-3" href="#">R 数据库操作</a>
+          <a class="nav-link ml-3{% if 'database_access' in request.path_info %} active{% endif %}" href={% url "analytics_R:database_access" %}>R 数据库操作</a>
         </nav>
       </nav>
 
@@ -80,7 +80,7 @@
         </nav>
       </nav>
       <nav class="nav-item">
-        {% if "k-means" in request.path_info or "dimensions" in request.path_info %}
+        {% if "k_means" in request.path_info or "classification" in request.path_info %}
         <a class="nav-link" href="#" id="navbarCollpaseFour" role="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-control="collapseFour">
           <i class="fa fa-angle-up"></i>聚类
         </a>
@@ -91,8 +91,8 @@
         </a>
         <nav class="collapse" id="collapseFour" aria-labelledby="navbarCollapseFour" data-parent="#navbarContent">
         {% endif %}
-          <a class="nav-link ml-3" href= "#">k-means </a>
-          <a class="nav-link ml-3" href= "#">分类和数据降维</a>
+          <a class="nav-link ml-3{% if "k_means" in request.path_info %} active{% endif %}" href= "{% url "analytics_R:k_means" %}">k-means </a>
+          <a class="nav-link ml-3{% if "classification" in request.path_info %} active{% endif %}" href= "{% url "analytics_R:classification" %}">分类和数据降维</a>
         </nav>
       </nav>
       <nav class="nav-item">
@@ -109,7 +109,7 @@
         {% endif %}
           <a class="nav-link ml-3{% if "text_intro" in request.path_info %} active{% endif %}" href= "{% url "analytics_R:text_intro" %}">文本数据 </a>
           <a class="nav-link ml-3{% if "corpus_summary" in request.path_info %} active{% endif %}" href= "{% url "analytics_R:corpus_summary" %}">汇总语料库</a>
-          <a class="nav-link ml-3" href="/stocks_reactive">情感分析</a>
+          <a class="nav-link ml-3" href="{% url "analytics_R:sentiment" %}">情感分析</a>
         </nav>
       </nav>
       </div>
