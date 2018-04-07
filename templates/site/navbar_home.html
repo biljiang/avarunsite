@@ -27,11 +27,11 @@
           数据建模
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="/modeling/">线性优化</a>
-          <a class="dropdown-item" href="/in_progress/">数据模拟</a>
-          <a class="dropdown-item" href="/in_progress/">回归预测</a>
+          <a class="dropdown-item" href={% url "modeling:linear_optimization" %}>线性优化</a>
+          <a class="dropdown-item" href={% url "modeling:simulation" %}>数据模拟</a>
+          <a class="dropdown-item" href={% url "modeling:prediction" %}>回归预测</a>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">其他</a>
+          <a class="dropdown-item" href={% url "modeling:others" %}>其他</a>
         </div>
       </li>
       <li class="nav-item dropdown">

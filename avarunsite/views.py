@@ -18,7 +18,8 @@ class HomePageView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         form = self.login_form()
-        return render (request,self.template_name,{'login_form':form,'user':request.user})        
+        return render (request,self.template_name,self.get_context_data())        
+#        return render (request,self.template_name,{'login_form':form,'user':request.user})        
 
     def post(self, request, *args, **kwargs):
         form = self.login_form(request.POST)
@@ -27,7 +28,8 @@ class HomePageView(TemplateView):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request,user)
-        return render (request,self.template_name,{'login_form':form,'user':request.user})        
+        return render (request,self.template_name,self.get_context_data())        
+#        return render (request,self.template_name,{'login_form':form,'user':request.user})        
 
 
 class InprogressView(HomePageView):
